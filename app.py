@@ -105,10 +105,23 @@ def logout():
     logout_user()
     return redirect(url_for('index'))
 
-@app.route('/create_post')
+@app.route('/create_post', methods=['GET', 'POST'])
+@login_required
 def posts():
+    if request.method == 'POST':
+        title = request.form['title']
+        content = request.form['content']
+        new_post = Post(
+            title=title,
+            content=content,
+            user_id=current_user.id
+        )
+        db.session.add(new_post)
+        db.session.commit()
+    existingPosts = Post.query.all()
     return render_template(
-        'create_post.html'
+        'create_post.html',
+        existingPosts=existingPosts
     )
 
 if __name__ == '__main__':

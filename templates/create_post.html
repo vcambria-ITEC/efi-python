@@ -11,7 +11,7 @@
                 <h5 class="mb-0">Crear un nuevo post</h5>
             </div>
             <div class="card-body">
-                <form method="POST" action="#">
+                <form method="POST" action="{{ url_for('posts') }}">
                     <div class="form-group">
                         <label for="title">Título</label>
                         <input type="text" class="form-control" id="title" name="title" placeholder="Título del post" required>
@@ -26,33 +26,42 @@
         </div>
 
         <!-- Lista de posts -->
-        <div class="card mb-3">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Título del Post</h5>
-                <small class="text-muted">17/07/2025 09:00</small>
-            </div>
-            <div class="card-body">
-                <p class="card-text">Este es un ejemplo de contenido del post. Aquí va el texto que el usuario escribe.</p>
-                <p class="text-muted">Publicado por: usuario_ejemplo</p>
-            </div>
-            <div class="card-footer">
-                <!-- Sección de comentarios -->
-                <h6>Comentarios</h6>
-                <div class="border-top pt-2 mb-2">
-                    <p class="mb-1">Este es un comentario de ejemplo.</p>
-                    <small class="text-muted">Por usuario_comentador - 17/07/2025 09:15</small>
-                </div>
-                <p class="text-muted">No hay más comentarios.</p>
-                <!-- Formulario para agregar comentario -->
-                <form method="POST" action="#" class="mt-3">
-                    <div class="form-group">
-                        <textarea class="form-control" name="content" rows="2" placeholder="Escribe un comentario..." required></textarea>
+         {% if existingPosts %}
+            {% for post in existingPosts %}
+                {% if post.is_active %}
+                    <div class="card mb-3">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">{{post.title}}</h5>
+                            <small class="text-muted">{{post.date}}</small>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">{{post.content}}</p>
+                            <p class="text-muted">Publicado por: {{post.author.username}}</p>
+                        </div>
+                        <div class="card-footer">
+                            <!-- Sección de comentarios -->
+                            <h6>Comentarios</h6>
+                            <div class="border-top pt-2 mb-2">
+                                <p class="mb-1">Este es un comentario de ejemplo.</p>
+                                <small class="text-muted">Por usuario_comentador - 17/07/2025 09:15</small>
+                            </div>
+                            <p class="text-muted">No hay más comentarios.</p>
+                            <!-- Formulario para agregar comentario -->
+                            <form method="POST" action="#" class="mt-3">
+                                <div class="form-group">
+                                    <textarea class="form-control" name="content" rows="2" placeholder="Escribe un comentario..." required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-sm btn-outline-primary">Comentar</button>
+                            </form>
+                        </div>
                     </div>
-                    <button type="submit" class="btn btn-sm btn-outline-primary">Comentar</button>
-                </form>
-            </div>
-        </div>
-        <p class="text-center text-muted">No hay más posts disponibles.</p>
+                    {% endif %}
+                {% endfor %}
+                <p class="text-center text-muted">No hay más posts disponibles.</p>
+        
+        {% else %}
+            <p class="text-center text-danger">No hay posts disponibles.</p>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
