@@ -106,6 +106,7 @@ def logout():
     return redirect(url_for('index'))
 
 @app.route('/create_post', methods=['GET', 'POST'])
+
 @login_required
 def posts():
     if request.method == 'POST':
@@ -118,11 +119,30 @@ def posts():
         )
         db.session.add(new_post)
         db.session.commit()
+
+    #verificar que exista algun post
     existingPosts = Post.query.all()
     return render_template(
         'create_post.html',
         existingPosts=existingPosts
     )
+
+#borrado logico de post
+@app.route('/delete_post/<int:post_id>')
+@login_required
+def delete_post(post_id):
+    post = Post.query.filter_by(id=post_id, is_active=1).first_or_404(description="Posteo no encontrado o ya está desactivado")
+
+    if post.user_id == current_user.id:
+        post.is_active = 0
+        db.session.commit()
+        flash("Post eliminado correctamente", "success")
+    else:
+        flash("No puedes eliminar este Post", "error")
+
+
+    return redirect(url_for('posts'))
+
 
 if __name__ == '__main__':
     app.run(debug=True)

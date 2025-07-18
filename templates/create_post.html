@@ -37,6 +37,9 @@
                         <div class="card-body">
                             <p class="card-text">{{post.content}}</p>
                             <p class="text-muted">Publicado por: {{post.author.username}}</p>
+                            {% if current_user.is_authenticated and post.user_id == current_user.id %}
+                                <a href="{{ url_for('delete_post', post_id=post.id) }}">Eliminar</a>
+                            {% endif %}
                         </div>
                         <div class="card-footer">
                             <!-- Sección de comentarios -->
