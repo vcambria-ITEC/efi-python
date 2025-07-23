@@ -121,7 +121,7 @@ def posts():
         db.session.commit()
 
     #verificar que exista algun post
-    existingPosts = Post.query.all()
+    existingPosts = Post.query.order_by(Post.date.desc()).all()
     return render_template(
         'create_post.html',
         existingPosts=existingPosts
@@ -142,6 +142,31 @@ def delete_post(post_id):
 
 
     return redirect(url_for('posts'))
+
+
+@app.route('/edit_post/<int:post_id>' , methods=['GET', 'POST'])
+@login_required
+def edit_post(post_id): 
+    post = Post.query.get_or_404(post_id)
+
+    if request.method == 'POST':
+        new_title = request.form['title']
+        new_content = request.form['content']
+
+        if new_title == post.title and new_content == post.content:
+            flash('No se realizaron cambios en el post', 'info')
+        else:
+            post.title = new_title
+            post.content = new_content
+            db.session.commit()
+            flash('Post editado correctamente', 'success')
+            
+        
+        
+        return redirect(url_for('posts'))
+
+    return render_template('edit_post.html', post=post)
+
 
 
 if __name__ == '__main__':
