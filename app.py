@@ -112,6 +112,15 @@ def posts():
     if request.method == 'POST':
         title = request.form['title']
         content = request.form['content']
+
+        if not title or len(title.strip()) == 0:
+            flash('El titulo no puede estar vacío.', 'error')
+            return redirect(url_for('posts'))
+
+        if not content or len(content.strip()) == 0:
+            flash('El post no puede estar vacío.', 'error')
+            return redirect(url_for('posts'))
+
         new_post = Post(
             title=title,
             content=content,
@@ -166,6 +175,32 @@ def edit_post(post_id):
         return redirect(url_for('posts'))
 
     return render_template('edit_post.html', post=post)
+
+@app.route('/post/<int:post_id>/comment', methods = ['POST'])
+@login_required
+def create_comment(post_id):
+
+        if request.method == 'POST':
+            post = Post.query.get_or_404(post_id)
+            content = request.form['content']
+            if not content or len(content.strip()) == 0:
+                flash('El comentario no puede estar vacío.', 'error')
+                return redirect(url_for('posts', _anchor=f'post-{post_id}'))
+            
+            comment = Comment(
+                content=content,
+                user_id=current_user.id,
+                post_id=post_id,
+                is_active=True
+            )
+
+        db.session.add(comment)
+        db.session.commit()
+
+        flash('Comentario agregado exitosamente.', 'success')
+
+        return redirect(url_for('posts', _anchor=f'post-{post_id}'))
+
 
 
 
