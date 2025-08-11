@@ -102,6 +102,8 @@ def register():
 
         flash('Username created succefully', 'success')
         return redirect(url_for('login'))
+    return render_template("auth/register.html")
+
 
 @app.route('/logout')
 def logout():
@@ -138,7 +140,7 @@ def get_categories():
 
 @app.route('/create_post', methods=['GET', 'POST'])
 
-@login_required
+
 def posts():
     if request.method == 'POST':
         title = request.form['title']

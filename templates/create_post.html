@@ -6,39 +6,40 @@
 <div class="row mb-4">
     <div class="col-md-8 mx-auto">
         <!-- Formulario para crear un nuevo post -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0">Crear un nuevo post</h5>
+        {% if current_user.is_authenticated %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Crear un nuevo post</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('posts') }}">
+                        <div class="form-group">
+                            <label for="title">Título</label>
+                            <input type="text" class="form-control" id="title" name="title" placeholder="Título del post" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="content">Contenido</label>
+                            <textarea class="form-control" id="content" name="content" rows="5" placeholder="Escribe tu post..." required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="cat">Categorías (máximo 3)</label>
+                            <select name="categoria_id" class="form-control" id="category_select">
+                                <option value="" disabled selected>Añadir Categoría</option>
+                                {%for cat in categories%}
+                                <option value="{{cat.id}}">{{cat.name}}</option>
+                                {%endfor%}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <div id="selected_categories" class="row justify-content-center ms-auto"></div>
+                        </div>
+                        <div id="hidden_category_inputs"></div>
+                        
+                        <button type="submit" class="btn btn-primary">Publicar</button>
+                    </form>
+                </div>
             </div>
-            <div class="card-body">
-                <form method="POST" action="{{ url_for('posts') }}">
-                    <div class="form-group">
-                        <label for="title">Título</label>
-                        <input type="text" class="form-control" id="title" name="title" placeholder="Título del post" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="content">Contenido</label>
-                        <textarea class="form-control" id="content" name="content" rows="5" placeholder="Escribe tu post..." required></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="cat">Categorías (máximo 3)</label>
-                        <select name="categoria_id" class="form-control" id="category_select">
-                            <option value="" disabled selected>Añadir Categoría</option>
-                            {%for cat in categories%}
-                            <option value="{{cat.id}}">{{cat.name}}</option>
-                            {%endfor%}
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <div id="selected_categories" class="row justify-content-center ms-auto"></div>
-                    </div>
-                    <div id="hidden_category_inputs"></div>
-                    
-                    <button type="submit" class="btn btn-primary">Publicar</button>
-                </form>
-            </div>
-        </div>
-
+        {% endif %}
         <!-- Lista de posts -->
          {% if existingPosts %}
             {% for post in existingPosts %}
