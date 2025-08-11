@@ -1,5 +1,6 @@
 import requests
 
+
 from flask import Flask,flash, render_template, request, redirect, url_for
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
@@ -29,6 +30,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = (
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
@@ -38,6 +40,8 @@ from models import User, Post, Comment
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+from models import User, Post, Comment
 
 @app.route('/')
 def index():
@@ -94,11 +98,6 @@ def register():
 
         flash('Username created succefully', 'success')
         return redirect(url_for('login'))
-
-
-    return render_template(
-        'auth/register.html'
-    )
 
 @app.route('/logout')
 def logout():
@@ -200,9 +199,6 @@ def create_comment(post_id):
         flash('Comentario agregado exitosamente.', 'success')
 
         return redirect(url_for('posts', _anchor=f'post-{post_id}'))
-
-
-
 
 if __name__ == '__main__':
     app.run(debug=True)

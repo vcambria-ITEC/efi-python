@@ -2,6 +2,7 @@ from app import db
 
 from flask_login import UserMixin
 
+
 from datetime import datetime
 import pytz
 
@@ -44,5 +45,3 @@ class Comment(db.Model):
     is_active = db.Column(db.Boolean, default=True)
 
     author = db.relationship('User', backref='Comments', lazy=True)
-
-    
