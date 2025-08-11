@@ -1,5 +1,6 @@
 import requests
 
+
 from flask import Flask,flash, render_template, request, redirect, url_for
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
@@ -31,6 +32,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = (
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
@@ -40,6 +42,8 @@ from models import User, Post, Comment, Category
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+from models import User, Post, Comment
 
 @app.route('/')
 def index():
@@ -99,11 +103,6 @@ def register():
         flash('Username created succefully', 'success')
         return redirect(url_for('login'))
 
-
-    return render_template(
-        'auth/register.html'
-    )
-
 @app.route('/logout')
 def logout():
     logout_user()
@@ -145,8 +144,6 @@ def posts():
         title = request.form['title']
         content = request.form['content']
         categories_ids = request.form.getlist('categories') # Obtiene una lista de las ids
-
-        print('Post Enviado')
 
         if not title or len(title.strip()) == 0:
             flash('El titulo no puede estar vacío.', 'error')
