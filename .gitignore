@@ -1,0 +1,19 @@
+# Archivos de entorno virtual
+venv/
+.env
+.environment
+
+# Archivos de Python compilados
+__pycache__/
+*.pyc
+
+# Migraciones (si usás Flask-Migrate)
+migrations/
+
+# Archivos de base de datos SQLite
+*.sqlite3
+
+# Otros archivos temporales
+*.log
+*.tmp
+

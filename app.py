@@ -5,6 +5,8 @@ from flask import Flask,flash, render_template, request, redirect, url_for
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 
+# from models import Category
+
 # Imports para el sistema de login
 from flask_login import (
     LoginManager,
@@ -35,7 +37,7 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-from models import User, Post, Comment
+from models import User, Post, Comment, Category
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -48,6 +50,8 @@ def index():
     return render_template(
         'index.html'
     )
+
+# SISTEMA DE LOGIN
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -104,6 +108,34 @@ def logout():
     logout_user()
     return redirect(url_for('index'))
 
+# CREAR LAS CATEGORIAS EN LA DB
+
+def cargar_categorias_iniciales():
+    categorias = ['Noticias', 'Arte', 'Entretenimiento', 'Videojuegos', 'Historia',
+                  'Política', 'Opinión', 'Recomendaciones', 'Reseña', 'Literatura',
+                  'Filosofía', 'Ciencia', 'Salud y bienestar', 'Cultura', 'Educación']
+    
+    for nombre in categorias:
+        if not Category.query.filter_by(name=nombre).first():
+            db.session.add(Category(name=nombre))
+    db.session.commit()
+
+with app.app_context(): # No es lo ideal porque se ejecuta en cada recarga, pero funciona
+    if Category.query.count() == 0: # Evita que se ejecute de nuevo la carga completa
+        cargar_categorias_iniciales()
+
+# MANEJO DE LAS PAGINAS
+
+@app.context_processor
+def get_categories():
+    categories = Category.query.all()
+
+    # El context_processor retorna siempre un diccionario, por lo que convertimos los objetos
+    # Category del modelo a un diccionario para pasarlo al select y luego al form
+
+    categories_dict = [{'id': c.id, 'name':c.name} for c in categories]
+    return dict(categories=categories_dict)
+
 @app.route('/create_post', methods=['GET', 'POST'])
 
 @login_required
@@ -111,6 +143,7 @@ def posts():
     if request.method == 'POST':
         title = request.form['title']
         content = request.form['content']
+        categories_ids = request.form.getlist('categories') # Obtiene una lista de las ids
 
         if not title or len(title.strip()) == 0:
             flash('El titulo no puede estar vacío.', 'error')
@@ -120,13 +153,33 @@ def posts():
             flash('El post no puede estar vacío.', 'error')
             return redirect(url_for('posts'))
 
+        if len(categories_ids) == 0:
+            flash('Debe elegir al menos una categoría para el post.', 'error')
+            return redirect(url_for('posts'))
+        
+        if len(categories_ids) > 3:
+            flash('Solo puede elegir un máximo de 3 categorías')
+            return redirect(url_for('posts'))
+        
+        categories = Category.query.filter(Category.id.in_(categories_ids)).all()
+        for cat in categories:
+            print(cat.name)
+
         new_post = Post(
             title=title,
             content=content,
             user_id=current_user.id
         )
+
+        # Convierte las id recibidas por el formulario en objetos Category y los
+        # agrega al post (SQLAlchemy carga los datos en la tabla intermedia)
+        categories = Category.query.filter(Category.id.in_(categories_ids)).all()
+        new_post.categories = categories
+
         db.session.add(new_post)
         db.session.commit()
+
+        return redirect(url_for('posts'))
 
     #verificar que exista algun post
     existingPosts = Post.query.order_by(Post.date.desc()).all()

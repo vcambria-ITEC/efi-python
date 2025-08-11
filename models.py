@@ -33,6 +33,8 @@ class Post(db.Model):
 
     comments = db.relationship('Comment', backref='post', lazy=True)
 
+    categories = db.relationship('Category', secondary='post_categorias', backref='posts', lazy=True)
+
     def __str__(self):
         return f"{self.title} {self.content} {self.date}"
 
@@ -45,3 +47,19 @@ class Comment(db.Model):
     is_active = db.Column(db.Boolean, default=True)
 
     author = db.relationship('User', backref='Comments', lazy=True)
+
+class Category(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False)
+
+    def __str__(self):
+        return f"{self.name}"
+
+# MODELO DE TABLA INTERMEDIA, SQLAlchemy recomienda modelar con db.Table las tablas
+# intermedias que no contengan mas datos adicionales que ambas claves foraneas
+
+post_categorias = db.Table(
+    'post_categorias',
+    db.Column('post_id', db.Integer, db.ForeignKey('post.id'), primary_key=True),
+    db.Column('category_id', db.Integer, db.ForeignKey('category.id'), primary_key=True)
+)
