@@ -215,17 +215,24 @@ def edit_post(post_id):
     if request.method == 'POST':
         new_title = request.form['title']
         new_content = request.form['content']
+        new_categories_ids = request.form.getlist('categories')
+        new_categories = Category.query.filter(Category.id.in_(new_categories_ids)).all()
 
-        if new_title == post.title and new_content == post.content:
+        # Validacion para que no quede un post sin categorizar
+        if new_title == post.title and new_content == post.content and post.categories == new_categories:
             flash('No se realizaron cambios en el post', 'info')
         else:
+
+            if len(new_categories_ids) == 0:
+                flash('Debe elegir al menos una categoría para el post.', 'error')
+                return redirect(url_for('edit_post',post_id=post_id))
+
             post.title = new_title
             post.content = new_content
+            post.categories = new_categories
             db.session.commit()
             flash('Post editado correctamente', 'success')
             
-        
-        
         return redirect(url_for('posts'))
 
     return render_template('edit_post.html', post=post)
