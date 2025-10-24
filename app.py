@@ -1,11 +1,15 @@
 import requests
 
-
 from flask import Flask,flash, render_template, request, redirect, url_for
 from flask_migrate import Migrate
-from flask_sqlalchemy import SQLAlchemy
-
-# from models import Category
+from models import (
+    db,
+    User,
+    UserCredentials,
+    Post,
+    Comment,
+    Category
+)
 
 # Imports para el sistema de login
 from flask_login import (
@@ -28,6 +32,10 @@ app.secret_key = "cualquiercosa"
 app.config['SQLALCHEMY_DATABASE_URI'] = (
     "mysql+pymysql://root:@localhost/db_miniblog"
 )
+
+app.config['JWT_SECRET_KEY'] = 'cualquier-cosa'
+jwt = JWTManager(app)
+db.init_app(app)
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
