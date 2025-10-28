@@ -1,11 +1,9 @@
-from app import db
 from flask_login import UserMixin
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
 import pytz
 
 db = SQLAlchemy()
-
 
 arg_timezone = pytz.timezone('America/Argentina/Buenos_Aires')
 
@@ -26,7 +24,7 @@ class User(db.Model, UserMixin):
     def __str__(self):
         return self.username
 
-class UserCredentials(db.Model):
+class UserCredential(db.Model):
 
     __tablename__ = "user_credentials"
     id = db.Column(db.Integer, primary_key=True)

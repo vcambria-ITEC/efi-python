@@ -1,6 +1,6 @@
 from app import db
 from marshmallow import Schema, fields, validate
-from models import User, Post, Comment, Category, UserCredentials
+from models import User, Post, Comment, Category
 
 class RegisterSchema(Schema):
     username = fields.Str(required=True)
@@ -16,7 +16,7 @@ class CategorySchema(Schema):
     id = fields.Int(dump_only=True)
     name = fields.Str(required=True)
 
-class UserCredentialsSchema(Schema):
+class UserCredentialSchema(Schema):
     id = fields.Int(dump_only=True)
     role = fields.Str(required=True)
     user_id = fields.Int(required=True)

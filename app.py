@@ -2,29 +2,19 @@ import requests
 
 from flask import Flask,flash, render_template, request, redirect, url_for
 from flask_migrate import Migrate
+from flask_jwt_extended import JWTManager
 from models import (
     db,
-    User,
-    UserCredentials,
     Post,
     Comment,
     Category
 )
-
-# Imports para el sistema de login
-from flask_login import (
-    LoginManager,
-    login_user,
-    login_required,
-    logout_user,
-    current_user,
+from views import (
+    UserAPI,
+    UserDetailAPI,
+    UserRegisterAPI,
+    LoginAPI
 )
-from werkzeug.security import (
-    check_password_hash,
-    generate_password_hash
-    )
-
-
 
 app = Flask(__name__)
 
@@ -35,23 +25,21 @@ app.config['SQLALCHEMY_DATABASE_URI'] = (
 
 app.config['JWT_SECRET_KEY'] = 'cualquier-cosa'
 jwt = JWTManager(app)
-db.init_app(app)
 
-db = SQLAlchemy(app)
+db.init_app(app)
 migrate = Migrate(app, db)
 
+app.add_url_rule(
+    '/api/register',
+    view_func=UserRegisterAPI.as_view('register_api'),
+    methods=['POST']
+)
 
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'login'
-
-from models import User, Post, Comment, Category
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
-
-from models import User, Post, Comment
+app.add_url_rule(
+    '/api/login',
+    view_func=LoginAPI.as_view('login'),
+    methods=['POST']
+)
 
 @app.route('/')
 def index():
@@ -59,96 +47,9 @@ def index():
         'index.html'
     )
 
-# SISTEMA DE LOGIN
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if current_user.is_authenticated:
-        return redirect(url_for('index'))
-    
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password'] # Pass que llega desde el formulario
-
-        user = User.query.filter_by(username=username).first()
-        if user and check_password_hash(pwhash=user.password_hash, password=password):
-            login_user(user)
-            return redirect(url_for('index'))
-
-    return render_template(
-        'auth/login.html'
-    )
-
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if current_user.is_authenticated:
-        return redirect(url_for('index'))
-    
-    if request.method == 'POST':
-        username = request.form["username"]
-        email = request.form["email"]
-        password = request.form["password"]
-
-        user = User.query.filter_by(username=username).first()
-        if user:
-            flash('Username exist', 'error')
-            return redirect(url_for('register'))
-        
-        # Hasheo de contraseña
-        password_hash = generate_password_hash(
-            password=password,
-            method='pbkdf2'
-        )
-        # Creacion del nuevo usuario
-        new_user = User(
-            username=username,
-            email=email,
-            password_hash=password_hash
-        )
-        db.session.add(new_user)
-        db.session.commit()
-
-        flash('Username created succefully', 'success')
-        return redirect(url_for('login'))
-    return render_template("auth/register.html")
-
-
-@app.route('/logout')
-def logout():
-    logout_user()
-    return redirect(url_for('index'))
-
-# CREAR LAS CATEGORIAS EN LA DB
-
-def cargar_categorias_iniciales():
-    categorias = ['Noticias', 'Arte', 'Entretenimiento', 'Videojuegos', 'Historia',
-                  'Política', 'Opinión', 'Recomendaciones', 'Reseña', 'Literatura',
-                  'Filosofía', 'Ciencia', 'Salud y bienestar', 'Cultura', 'Educación']
-    
-    for nombre in categorias:
-        if not Category.query.filter_by(name=nombre).first():
-            db.session.add(Category(name=nombre))
-    db.session.commit()
-
-with app.app_context(): # No es lo ideal porque se ejecuta en cada recarga, pero funciona
-    if Category.query.count() == 0: # Evita que se ejecute de nuevo la carga completa
-        cargar_categorias_iniciales()
-
-# MANEJO DE LAS PAGINAS
-
-@app.context_processor
-def get_categories():
-    categories = Category.query.all()
-
-    # El context_processor retorna siempre un diccionario, por lo que convertimos los objetos
-    # Category del modelo a un diccionario para pasarlo al select y luego al form
-
-    categories_dict = [{'id': c.id, 'name':c.name} for c in categories]
-    return dict(categories=categories_dict)
-
+""" 
 @app.route('/create_post', methods=['GET', 'POST'])
-
-
 def posts():
     if request.method == 'POST':
         title = request.form['title']
@@ -269,6 +170,6 @@ def create_comment(post_id):
         flash('Comentario agregado exitosamente.', 'success')
 
         return redirect(url_for('posts', _anchor=f'post-{post_id}'))
-
+ """
 if __name__ == '__main__':
     app.run(debug=True)

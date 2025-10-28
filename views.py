@@ -14,8 +14,8 @@ from flask_jwt_extended import (  #pip install Flask-JWT-Extended
 from functools import wraps
 from typing import Any, Dict
 from app import db
-from models import User, UserCredentials, Post, Comment, Category
-from schemas import UserSChema, UserCredentialsSchema, PostSchema, CommentSchema, CategorySchema
+from models import User, UserCredential, Post, Comment, Category
+from schemas import UserSchema, RegisterSchema, PostSchema, LoginSchema, CommentSchema, CategorySchema
 
 def role_required(*allowes_roles: str):
     def decorator(fn):
@@ -56,7 +56,7 @@ class UserPosts(MethodView):
             post.content = data['content']
             return PostSchema().dump(post), 200
         except ValidationError as err:
-            return {"Error": err.messages}
+            return {"Error": err.messages}, 400
 
 
 class UserAPI(MethodView):
@@ -89,7 +89,7 @@ class UserDetailAPI(MethodView):
         user = User.query.get_or_404(id)
         try: 
             data = UserSchema().load(request.json)
-            user.name = data['name']
+            user.name = data['username']
             user.email = data['email']
             db.session.commit()
             return UserSchema().dump(user), 200
@@ -101,8 +101,8 @@ class UserDetailAPI(MethodView):
         user = User.query.get_or_404(id)
         try: 
             data = UserSchema(partial=True).load(request.json)
-            if 'name' in data:
-                user.name = data.get('name')
+            if 'username' in data:
+                user.username = data.get('username')
             if 'email' in data:
                 user.email = data.get('email')
             db.session.commit()
@@ -125,12 +125,12 @@ class UserRegisterAPI(MethodView):
         try:
             data = RegisterSchema().load(request.json)
         except ValidationError as err:
-            return {"Error": err}
+            return {"Error": err.messages}, 400
         
         if User.query.filter_by(email=data['email']).first():
-            return jsonify({"Error": "Email en uso"})
+            return jsonify({"Error": "Email en uso"}), 400
         
-        new_user = User(name=data['name'], email=data['email'])
+        new_user = User(username=data['username'], email=data['email'])
         db.session.add(new_user)
         db.session.flush()
         
@@ -149,20 +149,20 @@ class LoginAPI(MethodView):
         try:
             data = LoginSchema().load(request.json)
         except ValidationError as err:
-            return {"Error": err}
+            return {"Error": err.messages}
         
-        user = User.query.filter_by(email=data["email"]).first()
+        user = User.query.filter_by(username=data["username"]).first()
 
         if not user or not user.credential:
-            return {"error": "no posee credenciales"}
+            return {"error": "no posee credenciales"}, 404
         
         if not bcrypt.verify(data["password"], user.credential.password_hash):
-            return {"error": "Credenciales invalidas"}
+            return {"error": "Credenciales invalidas"}, 400
 
         additional_claims = {
             "email": user.email,
             "role": user.credential.role,
-            "name": user.name
+            "username": user.username
         }
         identity = str(user.id)
         token = create_access_token(
