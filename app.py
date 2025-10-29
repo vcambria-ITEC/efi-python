@@ -13,7 +13,8 @@ from views import (
     UserAPI,
     UserDetailAPI,
     UserRegisterAPI,
-    LoginAPI
+    LoginAPI,
+    UserPosts
 )
 
 app = Flask(__name__)
@@ -39,6 +40,18 @@ app.add_url_rule(
     '/api/login',
     view_func=LoginAPI.as_view('login'),
     methods=['POST']
+)
+
+app.add_url_rule(
+    '/api/posts',
+    view_func=UserPosts.as_view('posts'),
+    methods=['GET','POST']
+)
+
+app.add_url_rule(
+    '/api/posts/<int:id>',
+    view_func=UserPosts.as_view('post'),
+    methods=['GET','PUT','PATCH', 'DELETE']
 )
 
 @app.route('/')

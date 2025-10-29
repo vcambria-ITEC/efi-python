@@ -17,6 +17,9 @@ from app import db
 from models import User, UserCredential, Post, Comment, Category
 from schemas import UserSchema, RegisterSchema, PostSchema, LoginSchema, CommentSchema, CategorySchema
 
+def is_propietary(proptierary_id, current_id):
+    return proptierary_id == current_id  
+    
 def role_required(*allowes_roles: str):
     def decorator(fn):
         @wraps(fn)
@@ -34,13 +37,14 @@ class UserPosts(MethodView):
         posts = Post.query.all()
         return PostSchema(many=True).dump(posts)
     
+    @jwt_required()
     def post(self):
         try:
             data = PostSchema().load(request.json)
             new_post = Post(
                 title=data['title'],
                 content=data['content'],
-                author=current_user
+                author_id=get_jwt_identity()
             )
             db.session.add(new_post)
             db.session.commit()
@@ -48,8 +52,13 @@ class UserPosts(MethodView):
             return {"Errors": f"{err.messages}"}, 400
         return PostSchema().dump(new_post), 201
     
+    @jwt_required()
     def put(self, id):
         post = Post.query.get_or_404(id)
+
+        if not is_propietary(id, int(get_jwt_identity())):
+            return {"Error":"No eres el propietario de este post"}
+
         try:
             data = PostSchema().load(request.json)
             post.title = data['title']
@@ -168,7 +177,7 @@ class LoginAPI(MethodView):
         token = create_access_token(
             identity=identity, 
             additional_claims=additional_claims, 
-            expires_delta=timedelta(minutes=5)
+            expires_delta=timedelta(minutes=30)
         )
 
         return jsonify(access_token=token)

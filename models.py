@@ -40,7 +40,7 @@ class Post(db.Model):
     title = db.Column(db.String(50), nullable=False)
     content = db.Column(db.String(500), nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=get_arg_datetime)
-    updated_at = db.Column(db.DateTime, onupdate=get_arg_datetime)
+    updated_at = db.Column(db.DateTime, onupdate=get_arg_datetime, default=get_arg_datetime)
     is_published = db.Column(db.Boolean, default=True)
     author_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     author = db.relationship('User', backref=db.backref('posts', lazy=True))
