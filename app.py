@@ -21,7 +21,7 @@ app = Flask(__name__)
 
 app.secret_key = "cualquiercosa"
 app.config['SQLALCHEMY_DATABASE_URI'] = (
-    "mysql+pymysql://root:@localhost/db_miniblog"
+    "mysql+pymysql://root:@localhost/test"
 )
 
 app.config['JWT_SECRET_KEY'] = 'cualquier-cosa'

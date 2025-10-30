@@ -27,7 +27,7 @@ def role_required(*allowes_roles: str):
             claims = get_jwt()
             role = claims.get('role')
             if not role or role not in allowes_roles:
-                return {"error": "acceso denegado para el rol"}
+                return {"Error": "Acceso denegado para el rol"}
             return fn(*args, **kwargs)
         return wrapper
     return decorator
@@ -44,6 +44,7 @@ class UserPosts(MethodView):
             new_post = Post(
                 title=data['title'],
                 content=data['content'],
+                category_ids=data['category_ids'],
                 author_id=get_jwt_identity()
             )
             db.session.add(new_post)
@@ -63,9 +64,34 @@ class UserPosts(MethodView):
             data = PostSchema().load(request.json)
             post.title = data['title']
             post.content = data['content']
+            post.category_ids=data['category_ids']
+            db.session.add(post)
+            db.session.commit()
             return PostSchema().dump(post), 200
         except ValidationError as err:
             return {"Error": err.messages}, 400
+
+        @jwt_required()
+        def patch(self, id):
+            post = Post.query.get_or_404(id)
+
+            if not is_propietary(id, int(get_jwt_identity())):
+                return {"Error":"No eres el propietario de este post"}, 403
+
+            try:
+                data = PostSchema(partial=True).load(request.json)
+            except ValidationError as err:
+                return {"Error": err.messages}, 400
+
+            post.title = data.get('title', post.title)
+            post.content = data.get('content', post.content)
+            if 'category_ids' in data:
+                post.categories = Category.query.filter(
+                    Category.id.in_(data['category_ids'])
+                ).all()
+            db.session.add(post)
+            db.session.commit(post)
+            return PostSchema().dump(post), 200
 
 
 class UserAPI(MethodView):
