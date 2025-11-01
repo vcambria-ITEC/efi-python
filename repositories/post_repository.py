@@ -1,20 +1,12 @@
 from models import Post, Category, db
+from base_repository import BaseRepository
 
-class PostRepository:
+class PostRepository(BaseRepository):
+    def __init__(self):
+        super().__init__()
 
     def get_all(self):
-        return Post.query.all()
+        return Post.query.filter_by(is_published=True).all()
 
     def get_by_id(self, id):
         return Post.query.get_or_404(id)
-
-    def save(self, post):
-        db.session.add(post)
-        db.session.commit()
-
-    def update(self):
-        db.session.commit()
-
-    def delete(self, post):
-        db.session.delete(post)
-        db.session.commit()
