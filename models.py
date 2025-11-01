@@ -10,8 +10,6 @@ arg_timezone = pytz.timezone('America/Argentina/Buenos_Aires')
 def get_arg_datetime():
     return datetime.now(arg_timezone)
 
-
-
 class User(db.Model, UserMixin):
 
     __tablename__ = "user"

@@ -4,6 +4,9 @@ from marshmallow import ValidationError
 from flask.views import MethodView
 from flask_login import current_user
 
+from services.post_service import PostService
+from services.user_service import UserService
+
 from passlib.hash import bcrypt
 from flask_jwt_extended import (  #pip install Flask-JWT-Extended
     jwt_required,
@@ -27,74 +30,59 @@ def role_required(*allowes_roles: str):
             claims = get_jwt()
             role = claims.get('role')
             if not role or role not in allowes_roles:
-                return {"Error": "Acceso denegado para el rol"}
+                return {"Error": "Access denied for this role."}
             return fn(*args, **kwargs)
         return wrapper
     return decorator
 
 class UserPosts(MethodView):
+    def __init__(self):
+        self.service = PostService()
+
     def get(self):
-        posts = Post.query.all()
-        return PostSchema(many=True).dump(posts)
+        posts = self.service.get_all_posts()
+        return PostSchema(many=True).dump(posts), 200
     
     @jwt_required()
     def post(self):
         try:
-            data = PostSchema().load(request.json)
-            new_post = Post(
-                title=data['title'],
-                content=data['content'],
-                category_ids=data['category_ids'],
-                author_id=get_jwt_identity()
-            )
-            db.session.add(new_post)
-            db.session.commit()
-        except ValidationError as err:
-            return {"Errors": f"{err.messages}"}, 400
-        return PostSchema().dump(new_post), 201
+            post = self.service.create_post(request.json, get_jwt_identity())
+            return PostSchema().dump(new_post), 201
+        except ValidationError as e:
+            return {"Errors": e.messages}, 400
+        
     
     @jwt_required()
     def put(self, id):
-        post = Post.query.get_or_404(id)
-
-        if not is_propietary(id, int(get_jwt_identity())):
-            return {"Error":"No eres el propietario de este post"}
-
         try:
-            data = PostSchema().load(request.json)
-            post.title = data['title']
-            post.content = data['content']
-            post.category_ids=data['category_ids']
-            db.session.add(post)
-            db.session.commit()
+            post = self.service.update_post(id, request.json, int(get_jwt_identity()))
             return PostSchema().dump(post), 200
-        except ValidationError as err:
-            return {"Error": err.messages}, 400
+        except ValidationError as e:
+            return {"Error": e.messages}, 400
 
-        @jwt_required()
-        def patch(self, id):
-            post = Post.query.get_or_404(id)
-
-            if not is_propietary(id, int(get_jwt_identity())):
-                return {"Error":"No eres el propietario de este post"}, 403
-
-            try:
-                data = PostSchema(partial=True).load(request.json)
-            except ValidationError as err:
-                return {"Error": err.messages}, 400
-
-            post.title = data.get('title', post.title)
-            post.content = data.get('content', post.content)
-            if 'category_ids' in data:
-                post.categories = Category.query.filter(
-                    Category.id.in_(data['category_ids'])
-                ).all()
-            db.session.add(post)
-            db.session.commit(post)
+    @jwt_required()
+    def patch(self, id):
+        try:
+            post = self.service.patch_post(id, request.json, int(get_jwt_identity()))
             return PostSchema().dump(post), 200
+        except PermissionError as e:
+            return {"Error": str(e)}, 403
+        except ValidationError as e:
+            return {"Error": e.messages}, 400
+    
+    @jwt_required()
+    def delete(self, id):
+        try:
+            self.service.delete_post(id, int(get_jwt_identity()))
+            return '', 204
+        except PermissionError as e:
+            return {"Error": str(e)}, 403
 
 
 class UserAPI(MethodView):
+    def __init__(self):
+        self.service = UserService()
+
     def get(self):
         users = User.query.all()
         return UserSchema(many=True).dump(users)
@@ -114,7 +102,6 @@ class UserAPI(MethodView):
 
 class UserDetailAPI(MethodView):
     @jwt_required()
-    @role_required("admin", "user", "moderator")
     def get(self, id):
         user = User.query.get_or_404(id)
         return UserSchema().dump(user), 200
