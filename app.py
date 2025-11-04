@@ -14,7 +14,9 @@ from views import (
     UserDetailAPI,
     UserRegisterAPI,
     LoginAPI,
-    UserPosts
+    UserPosts,
+    PostCommentsAPI,
+    CommentAPI
 )
 
 app = Flask(__name__)
@@ -52,6 +54,18 @@ app.add_url_rule(
     '/api/posts/<int:id>',
     view_func=UserPosts.as_view('post'),
     methods=['GET','PUT','PATCH', 'DELETE']
+)
+
+app.add_url_rule(
+    '/api/posts/<int:post_id>/comments',
+    view_func=PostCommentsAPI.as_view('post_comments_api'),
+    methods=['GET', 'POST']
+)
+
+app.add_url_rule(
+    '/api/comments/<int:comment_id>',
+    view_func=CommentAPI.as_view('comment_api'),
+    methods=['PATCH', 'DELETE']
 )
 
 @app.route('/')

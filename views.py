@@ -4,6 +4,7 @@ from flask.views import MethodView
 
 from services.post_service import PostService
 from services.user_service import UserService
+from services.comment_service import CommentService
 
 from flask_jwt_extended import (
     jwt_required,
@@ -147,3 +148,55 @@ class LoginAPI(MethodView):
             return jsonify(access_token = token), 200
         except ValidationError as e:
             return {"Error": e.messages}, 400
+        
+
+class PostCommentApi(MethodView):
+
+    def __init__(self):
+        self.service = CommentService()
+
+    def get(self, post_id):
+
+        try:
+            comments = self.service.get_comments_for_post(post_id)
+            return CommentSchema(many=True).dump(comments), 200
+        except:
+            return{"Error": str(e)}, 404
+        
+
+    @jwt_required
+    def post(self, post_id):
+
+        try:
+            data = request.json
+            author_id = int(get_jwt_identity())
+
+            new_comment = self.service.create_comment(data, author_id, post_id)
+
+            return CommentSchema().dump(new_comment), 201
+
+        except ValidationError as e:
+            return {"Error": e.messages}, 400
+        except ValueError as e:
+            return {"Error": e.messages}, 404
+        
+
+class CommentApi(MethodView):
+    def __init__(self):
+        self.service = CommentService()
+
+    @jwt_required
+    def delete(self, comment_id):
+
+        try:
+            current_user_id = int(get_jwt_identity())
+            current_user_role = get_jwt().get('role')
+
+            self.service.delete_comment(comment_id, current_user_id, current_user_role)
+
+            return '', 204
+        
+        except PermissionError as e:
+
+            return{"Error": str(e)}, 403
+
