@@ -5,6 +5,7 @@ from flask.views import MethodView
 from services.post_service import PostService
 from services.user_service import UserService
 from services.comment_service import CommentService
+from services.stats_service import StatsService
 
 from flask_jwt_extended import (
     jwt_required,
@@ -150,7 +151,7 @@ class LoginAPI(MethodView):
             return {"Error": e.messages}, 400
         
 
-class PostCommentApi(MethodView):
+class PostCommentAPI(MethodView):
 
     def __init__(self):
         self.service = CommentService()
@@ -181,7 +182,7 @@ class PostCommentApi(MethodView):
             return {"Error": e.messages}, 404
         
 
-class CommentApi(MethodView):
+class CommentAPI(MethodView):
     def __init__(self):
         self.service = CommentService()
 
@@ -200,3 +201,15 @@ class CommentApi(MethodView):
 
             return{"Error": str(e)}, 403
 
+class StatsAPI(MethodView):
+
+    def __init__(self):
+        self.service = StatsService()
+
+    def get(self):
+
+        current_role = get_jwt().get('role')
+
+        stats = self.service.get_stats(current_role)
+
+        return jsonify(stats), 200
