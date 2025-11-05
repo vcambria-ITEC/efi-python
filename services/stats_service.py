@@ -1,14 +1,11 @@
 from repositories.stats_repository import StatsRepository
-from marshmallow import ValidationError
 
 class StatsService:
 
     def __init__(self):
         self.repo = StatsRepository()
 
-    
     def get_stats(self, current_user_role):
-
 
         stats_data = {
             "total_posts": self.repo.count_total_posts(),

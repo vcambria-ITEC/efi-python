@@ -17,7 +17,7 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(100), nullable=False, unique=True)
     email = db.Column(db.String(100), nullable=False, unique=True)
     created_at = db.Column(db.DateTime, nullable=False, default=get_arg_datetime)
-    is_active = db.Column(db.Boolean, default=True) 
+    is_active = db.Column(db.Boolean, nullable=False, default=True) 
 
     def __str__(self):
         return self.username
@@ -30,7 +30,7 @@ class UserCredential(db.Model):
     password_hash = db.Column(db.String(256), nullable=False)
     role = db.Column(db.String(50), nullable=False, default='user')
     user = db.relationship("User", backref=db.backref("credential", uselist=False))
-    is_active = db.Column(db.Boolean, default=True)
+    is_active = db.Column(db.Boolean, nullable=False, default=True)
 
 class Post(db.Model):
     __tablename__ = "post"
@@ -40,7 +40,7 @@ class Post(db.Model):
     content = db.Column(db.String(500), nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=get_arg_datetime)
     updated_at = db.Column(db.DateTime, onupdate=get_arg_datetime, default=get_arg_datetime)
-    is_published = db.Column(db.Boolean, default=True)
+    is_published = db.Column(db.Boolean, nullable=False, default=True)
     author_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     author = db.relationship('User', backref=db.backref('posts', lazy=True))
     comments = db.relationship('Comment', backref='post', lazy=True)
@@ -58,7 +58,7 @@ class Comment(db.Model):
     created_at = db.Column(db.DateTime, nullable=False, default=get_arg_datetime)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
-    is_visible = db.Column(db.Boolean, default=True)
+    is_visible = db.Column(db.Boolean, nullable=False, default=True)
     author = db.relationship('User', backref='comments', lazy=True)
 
 class Category(db.Model):
@@ -66,7 +66,7 @@ class Category(db.Model):
     __tablename__ = "category"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False, unique=True)
-
+    is_active = db.Column(db.Boolean, nullable=False, default=True)
     def __str__(self):
         return self.name
 

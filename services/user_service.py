@@ -2,7 +2,8 @@ from datetime import timedelta
 from repositories.user_repository import UserRepository
 from models import User, UserCredential
 from passlib.hash import bcrypt
-
+from utils.check_role import is_owner
+from utils.message_utils import USER_DETAIL_PERMISSION_ERROR
 from flask_jwt_extended import create_access_token
 
 class UserService:
@@ -15,6 +16,11 @@ class UserService:
     def get_user_by_id(self, id):
         return self.repo.get_by_id(id)
     
+    def get_user_detail_by_id(self, id, current_user_id):
+        if not is_owner(current_user_id, id):
+            raise PermissionError(USER_DETAIL_PERMISSION_ERROR)
+        return self.get_user_by_id(id)
+
     def user_login(self, data):
         username = data['username']
 

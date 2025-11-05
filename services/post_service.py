@@ -1,48 +1,61 @@
 from repositories.post_repository import PostRepository
 from models import Post, Category
-from marshmallow import ValidationError
 from schemas import PostSchema
+from utils.check_role import is_owner
+
+from utils.message_utils import (
+    POST_OWNERSHIP_ERROR,
+    POST_NOT_FOUND_ERROR,
+    POST_NOT_FOUND_ERROR
+)
 
 class PostService:
-    ERROR_NOT_OWNER_MESSAGE = 'You are not the owner of this post.'
     def __init__(self):
         self.repo = PostRepository()
 
     def get_all_posts(self):
         return self.repo.get_all()
 
+    def get_post_by_id(self, post_id):
+        return self.repo.get_by_id(post_id)
+
     def create_post(self, data, author_id):
         dto = PostSchema().load(data)
-
+        print(author_id)
         post = Post(
             title=dto['title'],
             content=dto['content'],
-            category_ids=dto['category_ids'],
             author_id=author_id
         )
 
+        category_ids = dto.get('category_ids', [])
+        if category_ids:
+            categories = Category.query.filter(Category.id.in_(category_ids)).all()
+            post.categories = categories
+
         self.repo.save(post)
+        self.repo.commit()
         return post
 
     def update_post(self, id, data, current_user_id):
         post = self.repo.get_by_id(id)
 
-        if post.author_id != current_user_id:
-            raise PermissionError(self.ERROR_NOT_OWNER_MESSAGE)
+        if not is_owner(current_user_id, post.author_id):
+            raise PermissionError(POST_OWNERSHIP_ERROR)
 
         dto = PostSchema().load(data)
         post.title = dto['title']
         post.content = dto['content']
         post.category_ids = dto['category_ids']
 
-        self.repo.update()
+        self.repo.commit()
         return post
 
     def patch_post(self, id, data, current_user_id):
         post = self.repo.get_by_id(id)
 
-        if post.author_id != current_user_id:
-            raise PermissionError(self.ERROR_NOT_OWNER_MESSAGE)
+        if not is_owner(current_user_id, post.author_id):
+            raise PermissionError(POST_OWNERSHIP_ERROR)
 
         dto = PostSchema(partial=True).load(data)
 
@@ -54,12 +67,15 @@ class PostService:
                 Category.id.in_(dto['category_ids'])
             ).all()
 
-        self.repo.update()
+        self.repo.commit()
         return post
 
     def delete_post(self, id, current_user_id):
         post = self.repo.get_by_id(id)
-        if post.author_id != current_user_id:
-            raise PermissionError(self.ERROR_NOT_OWNER_MESSAGE)
-        self.repo.delete(post)
+
+        if not is_owner(current_user_id, post.author_id):
+            raise PermissionError(POST_OWNERSHIP_ERROR)
+            
+        post.is_published = False
+        self.repo.commit()
         return True

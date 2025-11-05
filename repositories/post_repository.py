@@ -1,5 +1,5 @@
-from models import Post, Category, db
-from base_repository import BaseRepository
+from models import Post
+from repositories.base_repository import BaseRepository
 
 class PostRepository(BaseRepository):
     def __init__(self):

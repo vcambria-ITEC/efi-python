@@ -20,3 +20,6 @@ class BaseRepository:
 
     def flush(self):
         self.db_session.flush()
+
+    def refresh(self):
+        self.db_session.refresh()

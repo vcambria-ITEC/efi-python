@@ -1,6 +1,6 @@
-from models import Comment, db
+from models import Comment
 
-from base_repository import BaseRepository
+from repositories.base_repository import BaseRepository
 
 class CommentRepository(BaseRepository):
     def __init__(self):

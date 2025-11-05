@@ -1,77 +1,65 @@
 from repositories.comment_repository import CommentRepository
-from repositories.post_repository import PostRepository
+from services.post_service import PostService
 from models import Comment
-from marshmallow import ValidationError
-from schemas import CommentSchema
+from utils.message_utils import (
+    COMMENT_OWNERSHIP_ERROR,
+    POST_NOT_FOUND_ERROR,
+    COMMENT_NOT_FOUND_ERROR
+)
+from utils.check_role import is_owner, get_role
 
 
 class CommentService:
-    ERROR_NOT_OWNER = "No eres el propietario de este comentario."
-    ERROR_NOT_MODERATOR = "No tienes permisos para esta acción."
-    ERROR_POST_NOT_FOUND = "El post no existe."
-
 
     def __init__(self):
         self.repo = CommentRepository()
-        self.post_repo = PostRepository
+        self.post_service = PostService()
 
-    
     def get_comments_for_post(self, post_id):
-
-        try:
-            self.post_repo.get_by_id(post_id)
-        except:
-            raise ValueError(self.ERROR_POST_NOT_FOUND)
-        
-        return self.repo.get_all_for_post(post_id)
+        return self.repo.get_all(post_id)
     
-
-    def create_comment(self,data, author_id, post_id):
-
-        try:
-            dto = CommentSchema().load(data)
-        except ValidationError as e:
-            raise e
-        
-        try:
-            self.post_repo.get_by_id(post_id)
-        except Exception:
-            raise ValueError(self.ERROR_POST_NOT_FOUND)
-        
+    def create_comment(self, data, author_id, post_id):
+        post = self.post_service.get_post_by_id(post_id)
+        if not post:
+            raise ValueError(POST_NOT_FOUND_ERROR)
 
         comment = Comment(
-            content = dto['content'],
+            content = data['content'],
             user_id = author_id,
             post_id = post_id
         )
 
         self.repo.save(comment)
+        self.repo.commit()
         return comment
     
     def update_comment(self, comment_id, data, current_user_id):
 
         comment = self.repo.get_by_id(comment_id)
 
-        if comment.user_id != current_user_id:
-            raise PermissionError(self.ERROR_NOT_OWNER)
-        
-        try:
-            dto = CommentSchema(partial=True).load(data)
-        except ValidationError as e:
-            raise e
-        
-        comment.content = dto.get('content', comment.content)
+        if not comment:
+            raise ValueError(COMMENT_NOT_FOUND_ERROR)
 
-        self.repo.update()
+        if not is_owner(current_user_id, comment.user_id):
+            raise PermissionError(COMMENT_OWNERSHIP_ERROR)
+        
+        comment.content = data.get('content', comment.content)
+
+        self.repo.commit()
         return comment
 
 
-    def delete_comment(self, comment_id):
+    def delete_comment(self, comment_id, current_user_id):
 
         comment = self.repo.get_by_id(comment_id)
+        if not comment:
+            raise ValueError(COMMENT_NOT_FOUND_ERROR)
+        
+        if not is_owner(current_user_id, comment.user_id) or get_role() is not 'moderator':
+            raise PermissionError(COMMENT_OWNERSHIP_ERROR)
 
         comment.is_visible = False
 
-        self.repo.update()
+        self.repo.commit()
 
         return True

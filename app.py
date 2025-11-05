@@ -17,6 +17,8 @@ from views import (
     UserPosts,
     PostCommentAPI,
     CommentAPI,
+    CategoriesAPI,
+    CategoryAPI,
     StatsAPI
 )
 
@@ -70,10 +72,23 @@ app.add_url_rule(
 )
 
 app.add_url_rule(
+    '/api/categories',
+    view_func=CategoriesAPI.as_view('categories_api'),
+    methods=['GET', 'POST']
+)
+
+app.add_url_rule(
+    '/api/categories/<int:category_id>',
+    view_func=CategoryAPI.as_view('category_api'),
+    methods=['GET','PUT', 'DELETE']
+)
+
+app.add_url_rule(
     '/api/stats',
     view_func=StatsAPI.as_view('stats_api'),
     methods=['GET']
 )
+
 
 @app.route('/')
 def index():

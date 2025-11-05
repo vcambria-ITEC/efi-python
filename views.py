@@ -6,6 +6,7 @@ from services.post_service import PostService
 from services.user_service import UserService
 from services.comment_service import CommentService
 from services.stats_service import StatsService
+from services.category_service import CategoryService
 
 from flask_jwt_extended import (
     jwt_required,
@@ -13,7 +14,6 @@ from flask_jwt_extended import (
     get_jwt_identity
 )
 from functools import wraps
-from models import User, UserCredential, Post, Comment, Category
 from schemas import UserSchema, RegisterSchema, PostSchema, LoginSchema, CommentSchema, CategorySchema
     
 def role_required(*allowes_roles: str):
@@ -35,6 +35,10 @@ class UserPosts(MethodView):
     def get(self):
         posts = self.service.get_all_posts()
         return PostSchema(many=True).dump(posts), 200
+    
+    def get(self, id):
+        post = self.service.get_post_by_id(id)
+        return PostSchema().dump(post), 200
     
     @jwt_required()
     def post(self):
@@ -75,6 +79,8 @@ class UserAPI(MethodView):
     def __init__(self):
         self.service = UserService()
 
+    @jwt_required()
+    @role_required("admin")
     def get(self):
         users = self.service.get_all_users()
         return UserSchema(many=True).dump(users)
@@ -84,10 +90,13 @@ class UserDetailAPI(MethodView):
         self.service = UserService()
 
     @jwt_required()
+    @role_required("admin", "user")
     def get(self, id):
-        user = self.service.get_user_by_id(id)
+        current_user_id = int(get_jwt_identity())
+        user = self.service.get_user_detail_by_id(id, current_user_id)
         return UserSchema().dump(user), 200
     
+    @jwt_required()
     @role_required("admin")
     def put(self, id):
         try:
@@ -157,21 +166,15 @@ class PostCommentAPI(MethodView):
         self.service = CommentService()
 
     def get(self, post_id):
-
-        try:
-            comments = self.service.get_comments_for_post(post_id)
-            return CommentSchema(many=True).dump(comments), 200
-        except:
-            return{"Error": str(e)}, 404
-        
-
-    @jwt_required
+        comments = self.service.get_comments_for_post(post_id)
+        return CommentSchema(many=True).dump(comments), 200
+    
+    @jwt_required()
     def post(self, post_id):
 
         try:
-            data = request.json
+            data = CommentSchema().load(request.json)
             author_id = int(get_jwt_identity())
-
             new_comment = self.service.create_comment(data, author_id, post_id)
 
             return CommentSchema().dump(new_comment), 201
@@ -179,37 +182,84 @@ class PostCommentAPI(MethodView):
         except ValidationError as e:
             return {"Error": e.messages}, 400
         except ValueError as e:
-            return {"Error": e.messages}, 404
-        
+            return {"Error": str(e)}, 404
 
 class CommentAPI(MethodView):
     def __init__(self):
         self.service = CommentService()
 
-    @jwt_required
+    @jwt_required()
     def delete(self, comment_id):
 
         try:
             current_user_id = int(get_jwt_identity())
-            current_user_role = get_jwt().get('role')
-
-            self.service.delete_comment(comment_id, current_user_id, current_user_role)
-
+            self.service.delete_comment(comment_id, current_user_id)
             return '', 204
-        
         except PermissionError as e:
-
             return{"Error": str(e)}, 403
+    
+    @jwt_required()
+    def patch(self, comment_id):
+        try:
+            data = CommentSchema().load(request.json)
+            author_id = int(get_jwt_identity())
+            comment = self.service.update_comment(comment_id, data, author_id)
+            return CommentSchema().dump(comment), 200
+        except PermissionError as e:
+            return {"Error": str(e)}, 403
 
+class CategoriesAPI(MethodView):
+    def __init__(self):
+        self.service = CategoryService()
+    
+    def get(self):
+        categories = self.service.get_all_categories()
+        return CategorySchema(many=True).dump(categories), 200
+    
+    @jwt_required()
+    @role_required("admin", "moderator")
+    def post(self):
+        try:
+            data = CategorySchema().load(request.json)
+            new_category = self.service.create_category(data)
+            return CategorySchema().dump(new_category), 201
+        except ValidationError as e:
+            return {"Error", e.messages}, 400
+
+class CategoryAPI(MethodView):
+    def __init__(self):
+        self.service = CategoryService()
+    
+    @jwt_required()
+    def get(self, category_id):
+        category = self.service.get_category_by_id(category_id)
+        return CategorySchema(many=False).dump(category), 200
+    
+    @role_required("admin", "moderator")
+    def put(self, category_id):
+        try:
+            data = CategorySchema().load(request.json)
+            category = self.service.update_category(category_id, data)
+            return CategorySchema().dump(category), 200
+        except ValidationError as e:
+            return {"Error", e.messages}, 400
+    
+    @role_required("admin")    
+    def delete(self, category_id):
+        try:
+            self.service.delete_category(category_id)
+            return '', 204
+        except ValidationError as e:
+            return {"Error", e.messages}, 400
+        
 class StatsAPI(MethodView):
 
     def __init__(self):
         self.service = StatsService()
 
+    @jwt_required()
+    @role_required("admin", "moderator")
     def get(self):
-
         current_role = get_jwt().get('role')
-
         stats = self.service.get_stats(current_role)
-
         return jsonify(stats), 200
