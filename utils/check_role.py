@@ -1,15 +1,18 @@
-from services.user_service import get_user_by_id
+from services.user_service import UserService
 
 from flask_jwt_extended import get_jwt
 
+userService = UserService()
 
 def is_owner(current_user_id, resource_owner_id):
-    current_user = get_user_by_id(current_user_id)
-    resource_owner = get_user_by_id(resource_owner_id)
+    current_user = userService.get_user_by_id(current_user_id)
+    resource_owner = userService.get_user_by_id(resource_owner_id)
 
-    if current_user.role == 'admin':
+    print(current_user.email)
+
+    if current_user.credential.role == 'admin':
         return True
-    return current_user.role == resource_owner.role
+    return current_user.credential.role == resource_owner.credential.role
 
 def get_role():
     return get_jwt().get('role')
