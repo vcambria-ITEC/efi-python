@@ -1,7 +1,6 @@
 from flask import request, jsonify
 from marshmallow import ValidationError
 from flask.views import MethodView
-
 from services.post_service import PostService
 from services.user_service import UserService
 from services.comment_service import CommentService
@@ -42,29 +41,18 @@ class UserPosts(MethodView):
     
     @jwt_required()
     def post(self):
-        try:
-            post = self.service.create_post(request.json, get_jwt_identity())
-            return PostSchema().dump(post), 201
-        except ValidationError as e:
-            return {"Errors": e.messages}, 400
+        post = self.service.create_post(request.json, get_jwt_identity())
+        return PostSchema().dump(post), 201
         
     @jwt_required()
     def put(self, id):
-        try:
-            post = self.service.update_post(id, request.json, int(get_jwt_identity()))
-            return PostSchema().dump(post), 200
-        except ValidationError as e:
-            return {"Error": e.messages}, 400
+        post = self.service.update_post(id, request.json, int(get_jwt_identity()))
+        return PostSchema().dump(post), 200
 
     @jwt_required()
     def patch(self, id):
-        try:
-            post = self.service.patch_post(id, request.json, int(get_jwt_identity()))
-            return PostSchema().dump(post), 200
-        except PermissionError as e:
-            return {"Error": str(e)}, 403
-        except ValidationError as e:
-            return {"Error": e.messages}, 400
+        post = self.service.patch_post(id, request.json, int(get_jwt_identity()))
+        return PostSchema().dump(post), 200
     
     @jwt_required()
     def delete(self, id):
@@ -171,18 +159,11 @@ class PostCommentAPI(MethodView):
     
     @jwt_required()
     def post(self, post_id):
+        data = CommentSchema().load(request.json)
+        author_id = int(get_jwt_identity())
+        new_comment = self.service.create_comment(data, author_id, post_id)
 
-        try:
-            data = CommentSchema().load(request.json)
-            author_id = int(get_jwt_identity())
-            new_comment = self.service.create_comment(data, author_id, post_id)
-
-            return CommentSchema().dump(new_comment), 201
-
-        except ValidationError as e:
-            return {"Error": e.messages}, 400
-        except ValueError as e:
-            return {"Error": str(e)}, 404
+        return CommentSchema().dump(new_comment), 201
 
 class CommentAPI(MethodView):
     def __init__(self):
@@ -190,23 +171,16 @@ class CommentAPI(MethodView):
 
     @jwt_required()
     def delete(self, comment_id):
-
-        try:
-            current_user_id = int(get_jwt_identity())
-            self.service.delete_comment(comment_id, current_user_id)
-            return '', 204
-        except PermissionError as e:
-            return{"Error": str(e)}, 403
+        current_user_id = int(get_jwt_identity())
+        self.service.delete_comment(comment_id, current_user_id)
+        return '', 204
     
     @jwt_required()
     def patch(self, comment_id):
-        try:
-            data = CommentSchema().load(request.json)
-            author_id = int(get_jwt_identity())
-            comment = self.service.update_comment(comment_id, data, author_id)
-            return CommentSchema().dump(comment), 200
-        except PermissionError as e:
-            return {"Error": str(e)}, 403
+        data = CommentSchema().load(request.json)
+        author_id = int(get_jwt_identity())
+        comment = self.service.update_comment(comment_id, data, author_id)
+        return CommentSchema().dump(comment), 200
 
 class CategoriesAPI(MethodView):
     def __init__(self):
@@ -219,12 +193,9 @@ class CategoriesAPI(MethodView):
     @jwt_required()
     @role_required("admin", "moderator")
     def post(self):
-        try:
-            data = CategorySchema().load(request.json)
-            new_category = self.service.create_category(data)
-            return CategorySchema().dump(new_category), 201
-        except ValidationError as e:
-            return {"Error", e.messages}, 400
+        data = CategorySchema().load(request.json)
+        new_category = self.service.create_category(data)
+        return CategorySchema().dump(new_category), 201
 
 class CategoryAPI(MethodView):
     def __init__(self):
@@ -237,20 +208,14 @@ class CategoryAPI(MethodView):
     
     @role_required("admin", "moderator")
     def put(self, category_id):
-        try:
-            data = CategorySchema().load(request.json)
-            category = self.service.update_category(category_id, data)
-            return CategorySchema().dump(category), 200
-        except ValidationError as e:
-            return {"Error", e.messages}, 400
+        data = CategorySchema().load(request.json)
+        category = self.service.update_category(category_id, data)
+        return CategorySchema().dump(category), 200
     
     @role_required("admin")    
     def delete(self, category_id):
-        try:
-            self.service.delete_category(category_id)
-            return '', 204
-        except ValidationError as e:
-            return {"Error", e.messages}, 400
+        self.service.delete_category(category_id)
+        return '', 204
         
 class StatsAPI(MethodView):
 

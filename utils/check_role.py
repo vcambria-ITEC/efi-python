@@ -6,13 +6,10 @@ userService = UserService()
 
 def is_owner(current_user_id, resource_owner_id):
     current_user = userService.get_user_by_id(current_user_id)
-    resource_owner = userService.get_user_by_id(resource_owner_id)
-
-    print(current_user.email)
 
     if current_user.credential.role == 'admin':
         return True
-    return current_user.credential.role == resource_owner.credential.role
+    return current_user_id == resource_owner_id
 
 def get_role():
     return get_jwt().get('role')
