@@ -32,6 +32,11 @@ class UserPostsAPI(MethodView):
     def __init__(self):
         self.service = PostService()
 
+    @jwt_required()
+    def post(self):
+        post = self.service.create_post(request.json, get_jwt_identity())
+        return PostSchema().dump(post), 201
+
     def get(self):
         posts = self.service.get_all_posts()
         return PostSchema(many=True).dump(posts), 200
@@ -44,11 +49,6 @@ class UserPostDetailAPI(MethodView):
         post = self.service.get_post_by_id(id)
         return PostSchema().dump(post), 200
     
-    @jwt_required()
-    def post(self):
-        post = self.service.create_post(request.json, get_jwt_identity())
-        return PostSchema().dump(post), 201
-        
     @jwt_required()
     def put(self, id):
         post = self.service.update_post(id, request.json, int(get_jwt_identity()))

@@ -7,7 +7,7 @@ class CommentRepository(BaseRepository):
         super().__init__()
 
     def get_by_id(self, id):
-        return Comment.query.get_or_404(id)
+        return Comment.query.get(id)
     
     def get_all(self, post_id):
         return Comment.query.filter_by(
