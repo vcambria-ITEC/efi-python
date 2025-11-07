@@ -6,7 +6,11 @@ from utils.check_role import is_owner
 from utils.message_utils import (
     POST_OWNERSHIP_ERROR,
     POST_NOT_FOUND_ERROR,
-    POST_NOT_FOUND_ERROR
+)
+
+from utils.exception_utils import (
+    ForbiddenError,
+    NotFoundError
 )
 
 class PostService:
@@ -17,11 +21,17 @@ class PostService:
         return self.repo.get_all()
 
     def get_post_by_id(self, post_id):
-        return self.repo.get_by_id(post_id)
+        target_post = self.repo.get_by_id(post_id)
+
+        if not target_post:
+            raise NotFoundError(POST_NOT_FOUND_ERROR)
+
+        if not target_post.is_published:
+            raise NotFoundError(POST_NOT_FOUND_ERROR)
+        return target_post
 
     def create_post(self, data, author_id):
         dto = PostSchema().load(data)
-        print(author_id)
         post = Post(
             title=dto['title'],
             content=dto['content'],
@@ -40,8 +50,11 @@ class PostService:
     def update_post(self, id, data, current_user_id):
         post = self.repo.get_by_id(id)
 
+        if not post:
+            raise NotFoundError(POST_NOT_FOUND_ERROR)
+
         if not is_owner(current_user_id, post.author_id):
-            raise PermissionError(POST_OWNERSHIP_ERROR)
+            raise ForbiddenError(POST_OWNERSHIP_ERROR)
 
         dto = PostSchema().load(data)
         post.title = dto['title']
@@ -54,13 +67,17 @@ class PostService:
     def patch_post(self, id, data, current_user_id):
         post = self.repo.get_by_id(id)
 
+        if not post:
+            raise NotFoundError(POST_NOT_FOUND_ERROR)
+
         if not is_owner(current_user_id, post.author_id):
-            raise PermissionError(POST_OWNERSHIP_ERROR)
+            raise ForbiddenError(POST_OWNERSHIP_ERROR)
 
         dto = PostSchema(partial=True).load(data)
 
         post.title = dto.get('title', post.title)
         post.content = dto.get('content', post.content)
+        post.category_ids = dto.get('category_ids', post.category_ids)
 
         if 'category_ids' in dto:
             post.categories = Category.query.filter(
@@ -73,8 +90,11 @@ class PostService:
     def delete_post(self, id, current_user_id):
         post = self.repo.get_by_id(id)
 
+        if not post:
+            raise NotFoundError(POST_NOT_FOUND_ERROR)
+
         if not is_owner(current_user_id, post.author_id):
-            raise PermissionError(POST_OWNERSHIP_ERROR)
+            raise ForbiddenError(POST_OWNERSHIP_ERROR)
             
         post.is_published = False
         self.repo.commit()

@@ -7,7 +7,10 @@ from utils.message_utils import (
     COMMENT_NOT_FOUND_ERROR
 )
 from utils.check_role import is_owner, get_role
-
+from utils.exception_utils import (
+    NotFoundError,
+    ForbiddenError
+)
 
 class CommentService:
 
@@ -21,7 +24,7 @@ class CommentService:
     def create_comment(self, data, author_id, post_id):
         post = self.post_service.get_post_by_id(post_id)
         if not post:
-            raise ValueError(POST_NOT_FOUND_ERROR)
+            raise NotFoundError(POST_NOT_FOUND_ERROR)
 
         comment = Comment(
             content = data['content'],
@@ -38,10 +41,10 @@ class CommentService:
         comment = self.repo.get_by_id(comment_id)
 
         if not comment:
-            raise ValueError(COMMENT_NOT_FOUND_ERROR)
+            raise NotFoundError(COMMENT_NOT_FOUND_ERROR)
 
         if not is_owner(current_user_id, comment.user_id):
-            raise PermissionError(COMMENT_OWNERSHIP_ERROR)
+            raise ForbiddenError(COMMENT_OWNERSHIP_ERROR)
         
         comment.content = data.get('content', comment.content)
 
@@ -52,11 +55,12 @@ class CommentService:
     def delete_comment(self, comment_id, current_user_id):
 
         comment = self.repo.get_by_id(comment_id)
+
         if not comment:
-            raise ValueError(COMMENT_NOT_FOUND_ERROR)
+            raise NotFoundError(COMMENT_NOT_FOUND_ERROR)
         
-        if not is_owner(current_user_id, comment.user_id) or get_role() is not 'moderator':
-            raise PermissionError(COMMENT_OWNERSHIP_ERROR)
+        if not is_owner(current_user_id, comment.user_id) or get_role() != 'moderator':
+            raise ForbiddenError(COMMENT_OWNERSHIP_ERROR)
 
         comment.is_visible = False
 

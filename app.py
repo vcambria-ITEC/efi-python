@@ -1,6 +1,12 @@
 import requests
 
-from flask import Flask,flash, render_template, request, redirect, url_for
+from flask import Flask,flash, render_template, jsonify
+
+from marshmallow import ValidationError
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+
+from utils.exception_utils import *
+
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from models import (
@@ -14,7 +20,8 @@ from views import (
     UserDetailAPI,
     UserRegisterAPI,
     LoginAPI,
-    UserPosts,
+    UserPostsAPI,
+    UserPostDetailAPI,
     PostCommentAPI,
     CommentAPI,
     CategoriesAPI,
@@ -35,6 +42,83 @@ jwt = JWTManager(app)
 db.init_app(app)
 migrate = Migrate(app, db)
 
+# --- MANEJADORES GLOBALES DE ERRORES ---
+
+# Codigos de Error
+# 400 - Request Invalido
+# 401 - Sin Autenticacion
+# 403 - Sin Permisos
+# 404 - Recurso Inexistente
+# 409 - Conflicto (duplicado)
+
+# -- Manejadores customizados --
+
+@app.errorhandler(ValidationError)
+def handle_validation_error(err):
+    return jsonify({"error":"Invalid Request", "details":err.messages}), 400
+
+@app.errorhandler(ForbiddenError)
+def handle_permission_error(err):
+    return jsonify({"error":str(err)}), 403
+
+@app.errorhandler(NotFoundError)
+def handle_not_found_error(err):
+    return jsonify({"error":str(err)}), 404
+
+@app.errorhandler(AuthError)
+def handle_auth_error(err):
+    return jsonify({"error":str(err)}), 401
+
+@app.errorhandler(InactiveUserError)
+def handle_inactive_user_error(err):
+    return jsonify({"error":str(err)}), 403
+
+@app.errorhandler(RegisterError)
+def handle_register_error(err):
+    return jsonify({"error":str(err)}), 400
+
+@app.errorhandler(UpdateError)
+def handle_updates_error(err):
+    return jsonify({"error":str(err)}), 400
+
+@app.errorhandler(DeleteError)
+def handle_delete_error(err):
+    return jsonify({"error":str(err)}), 400
+
+@app.errorhandler(ConflictError)
+def handle_conflict_error(err):
+    return jsonify({"error":str(err)}), 409
+
+# -- Manejadores de errores usando las excepciones de SQLALCHEMY --
+
+@app.errorhandler(IntegrityError)
+def handle_integrity_error(err):
+    return jsonify({"error":str(err)}), 400
+
+@app.errorhandler(SQLAlchemyError)
+def handle_database_error(err):
+    # IMPORTANTE: Antes de entregar, armar un modo DEBUG y modificar esto para que solo
+    # devuelva el error cuando este activado, de otro modo devolver un string predefinido
+    # para evitar que la API devuelva informacion sensible
+    return jsonify({"error":str(err)}), 500
+
+# -- Manejador general para todos los errores --
+# (Al estar al final de los manejadores, solo va a usarse cuando
+# la app no pueda captar el error con ninguno de los manejadores anteriores.)
+
+@app.errorhandler(Exception)
+def handle_general_exception(err):
+    # IMPORTANTE: Antes de entregar, armar un modo DEBUG y modificar esto para que solo
+    # devuelva el error cuando este activado, de otro modo devolver un string predefinido
+    # para evitar que la API devuelva informacion sensible
+    from werkzeug.exceptions import HTTPException
+
+    if isinstance(err, HTTPException):
+        return jsonify({"error": err.description, "code": err.code}), err.code
+    return jsonify({"error":str(err)}), 500
+
+# --- RUTAS DE LA API ---
+
 app.add_url_rule(
     '/api/register',
     view_func=UserRegisterAPI.as_view('register_api'),
@@ -49,13 +133,13 @@ app.add_url_rule(
 
 app.add_url_rule(
     '/api/posts',
-    view_func=UserPosts.as_view('posts'),
+    view_func=UserPostsAPI.as_view('posts'),
     methods=['GET','POST']
 )
 
 app.add_url_rule(
     '/api/posts/<int:id>',
-    view_func=UserPosts.as_view('post'),
+    view_func=UserPostDetailAPI.as_view('post'),
     methods=['GET','PUT','PATCH', 'DELETE']
 )
 
@@ -89,6 +173,17 @@ app.add_url_rule(
     methods=['GET']
 )
 
+app.add_url_rule(
+    '/api/users',
+    view_func=UserAPI.as_view('users_api'),
+    methods=['GET']
+)
+
+app.add_url_rule(
+    '/api/users/<int:id>',
+    view_func=UserDetailAPI.as_view('users_detail_api'),
+    methods=['GET','PUT', 'PATCH', 'DELETE']
+)
 
 @app.route('/')
 def index():

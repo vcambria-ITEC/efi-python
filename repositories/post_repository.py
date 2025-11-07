@@ -9,4 +9,4 @@ class PostRepository(BaseRepository):
         return Post.query.filter_by(is_published=True).all()
 
     def get_by_id(self, id):
-        return Post.query.get_or_404(id)
+        return Post.query.get(id)

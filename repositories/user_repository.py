@@ -8,7 +8,7 @@ class UserRepository(BaseRepository):
         super().__init__()
     
     def get_all(self):
-        return User.query.filter_by(active=True).all()
+        return User.query.filter_by(is_active=True).all()
 
     def get_all_including_inactive(self):
         return User.query.all()
@@ -17,7 +17,7 @@ class UserRepository(BaseRepository):
     # Se le agrega a la query un joinedload() que permite traer la relacion de
     # rol que hay entre User y UserCredentials, se accede con User.credential.role
     def get_by_id(self, id):
-        return User.query.options(joinedload(User.credential)).get_or_404(id)
+        return User.query.options(joinedload(User.credential)).get(id)
     
     def get_by_email(self, email):
         return User.query.filter_by(email=email).first()
