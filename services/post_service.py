@@ -21,7 +21,14 @@ class PostService:
         return self.repo.get_all()
 
     def get_post_by_id(self, post_id):
-        return self.repo.get_by_id(post_id)
+        target_post = self.repo.get_by_id(post_id)
+
+        if not target_post:
+            raise NotFoundError(POST_NOT_FOUND_ERROR)
+
+        if not target_post.is_published:
+            raise NotFoundError(POST_NOT_FOUND_ERROR)
+        return target_post
 
     def create_post(self, data, author_id):
         dto = PostSchema().load(data)

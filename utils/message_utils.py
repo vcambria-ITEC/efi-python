@@ -8,3 +8,4 @@ USED_EMAIL_ERROR = "Email already in use."
 USER_DETAIL_PERMISSION_ERROR = "You can not see this user's information."
 
 INVALID_CREDENTIALS_ERROR = "Invalid username or password."
+USER_NOT_FOUND = "User not found."

@@ -20,7 +20,8 @@ from views import (
     UserDetailAPI,
     UserRegisterAPI,
     LoginAPI,
-    UserPosts,
+    UserPostsAPI,
+    UserPostDetailAPI,
     PostCommentAPI,
     CommentAPI,
     CategoriesAPI,
@@ -62,7 +63,7 @@ def handle_permission_error(err):
 
 @app.errorhandler(NotFoundError)
 def handle_not_found_error(err):
-    return jsonify({"error":str(err)})
+    return jsonify({"error":str(err)}), 404
 
 @app.errorhandler(AuthError)
 def handle_auth_error(err):
@@ -110,6 +111,10 @@ def handle_general_exception(err):
     # IMPORTANTE: Antes de entregar, armar un modo DEBUG y modificar esto para que solo
     # devuelva el error cuando este activado, de otro modo devolver un string predefinido
     # para evitar que la API devuelva informacion sensible
+    from werkzeug.exceptions import HTTPException
+
+    if isinstance(err, HTTPException):
+        return jsonify({"error": err.description, "code": err.code}), err.code
     return jsonify({"error":str(err)}), 500
 
 # --- RUTAS DE LA API ---
@@ -128,13 +133,13 @@ app.add_url_rule(
 
 app.add_url_rule(
     '/api/posts',
-    view_func=UserPosts.as_view('posts'),
+    view_func=UserPostsAPI.as_view('posts'),
     methods=['GET','POST']
 )
 
 app.add_url_rule(
     '/api/posts/<int:id>',
-    view_func=UserPosts.as_view('post'),
+    view_func=UserPostDetailAPI.as_view('post'),
     methods=['GET','PUT','PATCH', 'DELETE']
 )
 
@@ -168,6 +173,17 @@ app.add_url_rule(
     methods=['GET']
 )
 
+app.add_url_rule(
+    '/api/users',
+    view_func=UserAPI.as_view('users_api'),
+    methods=['GET']
+)
+
+app.add_url_rule(
+    '/api/users/<int:id>',
+    view_func=UserDetailAPI.as_view('users_detail_api'),
+    methods=['GET','PUT', 'PATCH', 'DELETE']
+)
 
 @app.route('/')
 def index():

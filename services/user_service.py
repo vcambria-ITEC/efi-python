@@ -2,8 +2,8 @@ from datetime import timedelta
 from repositories.user_repository import UserRepository
 from models import User, UserCredential
 from passlib.hash import bcrypt
-from utils.exception_utils import AuthError, InactiveUserError, RegisterError, UpdateError, DeleteError, ConflictError
-from utils.message_utils import USER_DETAIL_PERMISSION_ERROR, INVALID_CREDENTIALS_ERROR, USED_EMAIL_ERROR
+from utils.exception_utils import AuthError, InactiveUserError, RegisterError, UpdateError, DeleteError, ConflictError, ForbiddenError, NotFoundError
+from utils.message_utils import USER_DETAIL_PERMISSION_ERROR, INVALID_CREDENTIALS_ERROR, USED_EMAIL_ERROR, USER_NOT_FOUND
 from flask_jwt_extended import create_access_token
 
 class UserService:
@@ -15,12 +15,21 @@ class UserService:
     
     def get_user_by_id(self, id):
         return self.repo.get_by_id(id)
-    """ 
+    
     def get_user_detail_by_id(self, id, current_user_id):
-        if not is_owner(current_user_id, id):
-            raise PermissionError(USER_DETAIL_PERMISSION_ERROR)
+
+        target_user = self.repo.get_by_id(current_user_id)
+
+        if not target_user.is_active:
+            raise NotFoundError(USER_NOT_FOUND)
+
+        current_user_role = self.repo.get_by_id(current_user_id).credential.role
+
+        if int(id) != int(current_user_id) and current_user_role != "admin":
+            raise ForbiddenError(USER_DETAIL_PERMISSION_ERROR)
+
         return self.get_user_by_id(id)
-    """
+    
     def user_login(self, data):
         username = data['username']
 
@@ -79,6 +88,9 @@ class UserService:
     
     def update_user(self, id, data):
         user = self.get_user_by_id(id)
+        
+        if not user:
+            raise NotFoundError(USER_NOT_FOUND)
 
         if data['email'] != user.email and self.repo.get_by_email(data['email']):
             raise ConflictError(USED_EMAIL_ERROR)

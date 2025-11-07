@@ -6,6 +6,7 @@ from services.user_service import UserService
 from services.comment_service import CommentService
 from services.stats_service import StatsService
 from services.category_service import CategoryService
+from utils.exception_utils import UpdateError, DeleteError
 
 from flask_jwt_extended import (
     jwt_required,
@@ -27,13 +28,17 @@ def role_required(*allowes_roles: str):
         return wrapper
     return decorator
 
-class UserPosts(MethodView):
+class UserPostsAPI(MethodView):
     def __init__(self):
         self.service = PostService()
 
     def get(self):
         posts = self.service.get_all_posts()
         return PostSchema(many=True).dump(posts), 200
+
+class UserPostDetailAPI(MethodView):
+    def __init__(self):
+        self.service = PostService()
     
     def get(self, id):
         post = self.service.get_post_by_id(id)
@@ -62,7 +67,6 @@ class UserPosts(MethodView):
         except PermissionError as e:
             return {"Error": str(e)}, 403
 
-
 class UserAPI(MethodView):
     def __init__(self):
         self.service = UserService()
@@ -78,7 +82,6 @@ class UserDetailAPI(MethodView):
         self.service = UserService()
 
     @jwt_required()
-    @role_required("admin", "user")
     def get(self, id):
         current_user_id = int(get_jwt_identity())
         user = self.service.get_user_detail_by_id(id, current_user_id)
@@ -93,9 +96,10 @@ class UserDetailAPI(MethodView):
             return UserSchema().dump(user), 200
         except ValidationError as err:
             return {"Error": err.messages}, 400
-        except ValueError as e:
+        except UpdateError as e:
             return {"Error": str(e)}, 400
 
+    @jwt_required()
     @role_required("admin")
     def patch(self, id):
         try:
@@ -104,15 +108,16 @@ class UserDetailAPI(MethodView):
             return UserSchema().dump(user), 200
         except ValidationError as err:
             return {"Error": err.messages}, 400
-        except ValueError as e:
+        except UpdateError as e:
             return {"Error": str(e)}, 400
     
+    @jwt_required()
     @role_required("admin")
     def delete(self, id):
         try:
             self.service.delete_user(id)
             return {"Message": "User deleted."}, 204
-        except ValueError as e:
+        except DeleteError as e:
             return {"Error": str(e)}, 400
 
 class UserRegisterAPI(MethodView):
