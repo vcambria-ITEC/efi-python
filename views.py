@@ -6,7 +6,8 @@ from services.user_service import UserService
 from services.comment_service import CommentService
 from services.stats_service import StatsService
 from services.category_service import CategoryService
-from utils.exception_utils import UpdateError, DeleteError
+from utils.exception_utils import UpdateError, DeleteError, ForbiddenError
+from utils.message_utils import NOT_PERMISSION_ERROR
 
 from flask_jwt_extended import (
     jwt_required,
@@ -23,7 +24,7 @@ def role_required(*allowes_roles: str):
             claims = get_jwt()
             role = claims.get('role')
             if not role or role not in allowes_roles:
-                return {"Error": "Access denied for this role."}
+                raise ForbiddenError(NOT_PERMISSION_ERROR)
             return fn(*args, **kwargs)
         return wrapper
     return decorator
@@ -61,11 +62,8 @@ class UserPostDetailAPI(MethodView):
     
     @jwt_required()
     def delete(self, id):
-        try:
-            self.service.delete_post(id, int(get_jwt_identity()))
-            return '', 204
-        except PermissionError as e:
-            return {"Error": str(e)}, 403
+        self.service.delete_post(id, int(get_jwt_identity()))
+        return '', 204
 
 class UserAPI(MethodView):
     def __init__(self):
@@ -90,67 +88,39 @@ class UserDetailAPI(MethodView):
     @jwt_required()
     @role_required("admin")
     def put(self, id):
-        try:
-            data = UserSchema().load(request.json)
-            user = self.service.update_user(id, data)
-            return UserSchema().dump(user), 200
-        except ValidationError as err:
-            return {"Error": err.messages}, 400
-        except UpdateError as e:
-            return {"Error": str(e)}, 400
+        data = UserSchema().load(request.json)
+        user = self.service.update_user(id, data)
+        return UserSchema().dump(user), 200
 
     @jwt_required()
     @role_required("admin")
     def patch(self, id):
-        try:
-            data = UserSchema(partial=True).load(request.json)
-            user = self.service.patch_user(id, data)
-            return UserSchema().dump(user), 200
-        except ValidationError as err:
-            return {"Error": err.messages}, 400
-        except UpdateError as e:
-            return {"Error": str(e)}, 400
+        data = UserSchema(partial=True).load(request.json)
+        user = self.service.patch_user(id, data)
+        return UserSchema().dump(user), 200
     
     @jwt_required()
     @role_required("admin")
     def delete(self, id):
-        try:
-            self.service.delete_user(id)
-            return {"Message": "User deleted."}, 204
-        except DeleteError as e:
-            return {"Error": str(e)}, 400
+        self.service.delete_user(id)
+        return {"Message": "User deleted."}, 204
 
 class UserRegisterAPI(MethodView):
     def __init__(self):
         self.service = UserService()
 
     def post(self):
-        try:
-            data = RegisterSchema().load(request.json)
-        except ValidationError as e:
-            return {"Error": e.messages}, 400
-        
-        try:
-            new_user = self.service.register_user(data)
-        except ValueError as e:
-            return {"Error": str(e)}, 400
-        return UserSchema().dump(new_user), 201
+        data = RegisterSchema().load(request.json)
+        new_user = self.service.register_user(data)
     
 class LoginAPI(MethodView):
     def __init__(self):
         self.service = UserService()
 
     def post(self):
-        try:
-            data = LoginSchema().load(request.json)
-        except ValidationError as e:
-            return {"Error": e.messages}, 400
-        
-        try:
-            token = self.service.user_login(data)
-            return jsonify(access_token = token), 200
-        except ValidationError as e:
-            return {"Error": e.messages}, 400
+        data = LoginSchema().load(request.json)
+        token = self.service.user_login(data)
+        return jsonify(access_token = token), 200
         
 
 class PostCommentAPI(MethodView):

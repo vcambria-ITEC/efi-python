@@ -11,11 +11,17 @@ class UserService:
         self.repo = UserRepository()
 
     def get_all_users(self):
-        return self.repo.get_all()
-    
+        all_users = self.repo.get_all()
+        if not all_users:
+            raise NotFoundError("No users exist in the database.")
+        return all_users
+
     def get_user_by_id(self, id):
-        return self.repo.get_by_id(id)
-    
+        user = self.repo.get_by_id(id)
+        if not user:
+            raise NotFoundError(USER_NOT_FOUND)
+        return user
+
     def get_user_detail_by_id(self, id, current_user_id):
 
         target_user = self.repo.get_by_id(current_user_id)
@@ -108,6 +114,9 @@ class UserService:
     def patch_user(self, id, data):
         user = self.get_user_by_id(id)
 
+        if not user:
+            raise NotFoundError(USER_NOT_FOUND)
+
         if 'email' in data and data['email'] != user.email:
             if self.repo.get_by_email(data['email']):
                 raise ConflictError(USED_EMAIL_ERROR)
@@ -125,6 +134,9 @@ class UserService:
 
     def delete_user(self, id):
         user = self.get_user_by_id(id)
+
+        if not user:
+            raise NotFoundError(USER_NOT_FOUND)
 
         try:
             if user.credential:

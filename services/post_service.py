@@ -10,7 +10,8 @@ from utils.message_utils import (
 
 from utils.exception_utils import (
     ForbiddenError,
-    NotFoundError
+    NotFoundError,
+    ConflictError
 )
 
 class PostService:
@@ -39,8 +40,19 @@ class PostService:
         )
 
         category_ids = dto.get('category_ids', [])
+
+        if len(category_ids) != len(set(category_ids)):
+            raise ConflictError("Duplicate category IDs are not allowed.")
+
         if category_ids:
             categories = Category.query.filter(Category.id.in_(category_ids)).all()
+            
+            found_ids = {cat.id for cat in categories}
+            missing_ids = set(category_ids) - found_ids
+
+            if missing_ids:
+                raise NotFoundError(f"The following category IDs do not exist:{list(missing_ids)}")
+            
             post.categories = categories
 
         self.repo.save(post)
