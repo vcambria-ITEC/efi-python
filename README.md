@@ -1,310 +1,145 @@
-# EFI Segunda Etapa - Programación Python 1
-## Sistema de Roles y Permisos en API REST
+# EFI: API REST Miniblog
+
+API REST para un miniblog desarrollada en Python y Flask. Este proyecto sirve como un backend robusto para gestionar contenido y usuarios, implementando características clave de seguridad y arquitectura moderna.
+
+### Características Principales
+* **Autenticación:** Sistema seguro basado en **JWT (JSON Web Tokens)**.
+* **Roles:** Gestión de permisos con tres niveles: `admin`, `moderador`, y `usuario`.
+* **Permisos:** Control de acceso detallado por endpoint según el rol del usuario.
+* **Vistas:** Implementación de Vistas Basadas en Clases (Flask's `MethodView`).
+* **Arquitectura:** Diseño basado en el patrón **Service-Repository** para una lógica de negocio desacoplada y mantenible.
 
 ---
 
-## Contexto
+## Tecnologías y Prerrequisitos
 
-En la primera etapa desarrollaron un miniblog con Flask, modelos relacionales y templates. Ahora van a evolucionar ese proyecto hacia una **API REST con autenticación JWT y control de acceso basado en roles (RBAC)**.
+Antes de comenzar, asegúrate de tener instalado lo siguiente en tu sistema:
 
----
-
-## Enunciado
-
-Deberás extender tu proyecto de miniblog para convertirlo en una **API REST segura** que implemente:
-- Autenticación con JWT (JSON Web Tokens)
-- Sistema de roles de usuario (admin, moderador, usuario)
-- Control de permisos por endpoint según el rol
-- Vistas basadas en clases (MethodView)
-- Arquitectura service-repository (opcional pero recomendado)
+* **Python 3.10+** (Puedes descargarlo desde [python.org](https://www.python.org/downloads/))
+* **XAMPP** (Necesario para la base de datos MySQL. Puedes descargarlo desde [apachefriends.org](https://www.apachefriends.org/index.html))
 
 ---
 
-## Requisitos Funcionales
+## Instalación y Configuración
 
-### 1. Sistema de Roles
+Sigue estos pasos para poner en marcha el proyecto localmente.
 
-Implementa **tres roles** con los siguientes permisos:
-
-#### **Usuario (user)**
-- Ver todos los posts y comentarios (público)
-- Crear sus propios posts
-- Editar y eliminar **solo sus propios** posts
-- Comentar en cualquier post
-- Editar y eliminar **solo sus propios** comentarios
-
-#### **Moderador (moderator)**
-- Todo lo que puede hacer un usuario
-- Eliminar **cualquier** comentario (moderación)
-- Editar categorías
-- Ver estadísticas básicas (cantidad de posts, comentarios, usuarios)
-
-#### **Administrador (admin)**
-- Todo lo que puede hacer un moderador
-- Eliminar **cualquier** post
-- Crear, editar y eliminar categorías
-- Gestionar usuarios (ver lista, cambiar roles, desactivar usuarios)
-- Ver estadísticas completas del sistema
-
----
-
-### 2. Modelos a Modificar/Crear
-
-#### **Usuario** (modificar el existente)
-Agregar:
-- `role`: String (valores: "user", "moderator", "admin") - default: "user"
-- `is_active`: Boolean - default: True
-- `created_at`: DateTime
-
-#### **UserCredentials** (nuevo modelo recomendado)
-Separar las credenciales del modelo User:
-- `user_id`: ForeignKey a User
-- `password_hash`: String (nunca guardar contraseñas en texto plano)
-- `role`: String
-
-#### **Post** (modificar el modelo Entrada)
-Agregar:
-- `is_published`: Boolean - default: True
-- `updated_at`: DateTime
-
-#### **Comentario** (modificar el existente)
-Agregar:
-- `is_visible`: Boolean - default: True (para moderación)
-
----
-
-### 3. Endpoints a Implementar
-
-Todos los endpoints deben estar implementados como **vistas basadas en clases** usando `MethodView`.
-
-#### **Autenticación**
+### 1. Clonar el Repositorio
 ```
-POST /api/register
-  Body: { "username", "email", "password" }
-  Response: { "message": "Usuario creado", "user_id": 1 }
-
-POST /api/login
-  Body: { "email", "password" }
-  Response: { "access_token": "eyJ0eXAiOiJKV1QiLCJh..." }
+git clone https://github.com/vcambria-ITEC/efi-python.git
 ```
-
-#### **Posts**
 ```
-GET    /api/posts              # Público - listar todos los posts
-GET    /api/posts/<id>         # Público - ver un post específico
-POST   /api/posts              # Requiere autenticación (user+)
-PUT    /api/posts/<id>         # Solo el autor o admin
-DELETE /api/posts/<id>         # Solo el autor o admin
+cd efi-python
 ```
+### 2. Configurar la Base de Datos (XAMPP / MySQL)
+1. Inicia XAMPP (o tu servicio de MySQL).
 
-#### **Comentarios**
+
+Ejemplo para iniciar XAMPP en Linux
 ```
-GET    /api/posts/<id>/comments      # Público
-POST   /api/posts/<id>/comments      # Requiere autenticación (user+)
-DELETE /api/comments/<id>            # Autor, moderator o admin
+sudo /opt/lampp/xampp start
 ```
+2. Abre un gestor de base de datos (como phpMyAdmin en http://localhost/phpmyadmin).
 
-#### **Categorías**
-```
-GET    /api/categories         # Público
-POST   /api/categories         # Solo moderator y admin
-PUT    /api/categories/<id>    # Solo moderator y admin
-DELETE /api/categories/<id>    # Solo admin
-```
+3. Inicia sesión (usualmente el usuario por defecto es root sin contraseña).
 
-#### **Usuarios (Admin)**
-```
-GET    /api/users              # Solo admin
-GET    /api/users/<id>         # Usuario mismo o admin
-PATCH  /api/users/<id>/role    # Solo admin (cambiar rol)
-DELETE /api/users/<id>         # Solo admin (desactivar)
-```
+4. Crea una nueva base de datos vacía. Puedes llamarla db_miniblog o como prefieras. No necesitas crear ninguna tabla, solo la base de datos.
 
-#### **Estadísticas**
-```
-GET /api/stats                 # Moderator y admin
-  Response: {
-    "total_posts": 45,
-    "total_comments": 120,
-    "total_users": 30,
-    "posts_last_week": 8  // solo admin
-  }
-```
+ ### 3. Configurar el Entorno de Python
+1. Crea un entorno virtual:
 
----
-
-### 4. Implementación Técnica
-
-#### **Autenticación JWT**
-- Usar `flask-jwt-extended`
-- El token debe incluir: `user_id`, `email`, `role`
-- Tiempo de expiración: 24 horas
-
-#### **Decoradores de Permisos**
-Crear decoradores personalizados:
-
-```python
-@jwt_required()
-@roles_required("admin", "moderator")
-def delete_comment(id):
-    # lógica
-```
-
-#### **Validación con Marshmallow**
-- Todos los endpoints deben validar datos de entrada con schemas
-- Manejar errores de validación apropiadamente
-
-#### **Verificación de Propiedad**
-Para operaciones como editar/eliminar posts propios:
-```python
-def check_ownership(user_id, resource_owner_id):
-    """Verifica si el usuario es dueño del recurso"""
-    claims = get_jwt()
-    if claims['role'] == 'admin':
-        return True
-    return user_id == resource_owner_id
-```
-
----
-
-### 5. Arquitectura (Recomendado)
-
-Organiza tu código siguiendo el patrón **service-repository**:
 
 ```
-/project
-  /models       # Modelos SQLAlchemy
-  /schemas      # Schemas Marshmallow
-  /repositories # Acceso a datos (queries)
-  /services     # Lógica de negocio
-  /views        # Controladores (MethodView)
-  /decorators   # Decoradores personalizados
-  app.py        # Configuración y rutas
+python3 -m venv venv
+```
+2. Activa el entorno:
+```
+source venv/bin/activate
+```
+3. Instala todas las dependencias del proyecto:
+
+```
+pip install -r requirements.txt
+```
+### 4. Conectar la Base de Datos
+
+Para conectarte a la base de datos, necesitarás las siguientes variables de ambiente
+
+#### Crear variables temporales (para la sesión actual de tu terminal)
+
+```bash
+export DB_NAME="db_miniblog"
+export DB_USER="root"
+export DB_PASSWORD=""
+export DB_SERVER="localhost"
+export DB_PORT="3306"
 ```
 
-**Ejemplo:**
-```python
-# repositories/post_repository.py
-class PostRepository:
-    @staticmethod
-    def get_all_published():
-        return Post.query.filter_by(is_published=True).all()
+###### NOTA: las variables que se muestran son las que la API utiliza por defecto al inicializarse, si son las mismas que vas a utilizar en la base de datos no es necesario utilizar este código en tu terminal.
 
-# services/post_service.py
-class PostService:
-    def __init__(self):
-        self.repo = PostRepository()
-    
-    def get_public_posts(self):
-        return self.repo.get_all_published()
 
-# views/post_views.py
-class PostAPI(MethodView):
-    def __init__(self):
-        self.service = PostService()
-    
-    def get(self):
-        posts = self.service.get_public_posts()
-        return PostSchema(many=True).dump(posts)
+#### La app se conectará a la base de datos de la siguiente manera
+```
+app.config['SQLALCHEMY_DATABASE_URI'] = (
+    "mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_SERVER}:{DB_PORT}/{DB_NAME}"
+)
 ```
 
----
+### 5. Aplicar las Migraciones
+Ejecuta los siguientes comandos en orden para crear toda la estructura de tablas en tu base de datos:
 
-## Criterios de Evaluación
 
-### Funcionalidad (40%)
-- [ ] Sistema de autenticación JWT funcional
-- [ ] Los tres roles implementados correctamente
-- [ ] Todos los endpoints requeridos funcionan
-- [ ] Validación de permisos correcta en cada endpoint
+Inicializa las migraciones (solo la primera vez)
+```
+flask db init
+```
+ Crea el script de migración basado en tus Modelos
+ ```
+flask db migrate
+```
+Aplica los cambios a la base de datos
+```
+flask db upgrade
+```
+### 6. Ejecutar el Proyecto
 
-### Código (30%)
-- [ ] Uso de vistas basadas en clases (MethodView)
-- [ ] Schemas de Marshmallow para validación
-- [ ] Código organizado y legible
-- [ ] Manejo apropiado de errores
+Una vez completada la instalación, puedes iniciar el servidor de desarrollo:
 
-### Seguridad (20%)
-- [ ] Contraseñas hasheadas (bcrypt o similar)
-- [ ] Tokens JWT implementados correctamente
-- [ ] Verificación de propiedad de recursos
-- [ ] No hay endpoints sin protección que deberían tenerla
+```
+flask run --reload
+```
+El flag --reload reiniciará automáticamente el servidor cada vez que detecte un cambio en el código.
 
-### Arquitectura (10%)
-- [ ] Separación de responsabilidades
-- [ ] Uso de decoradores personalizados
-- [ ] Código reutilizable
+La API estará disponible y corriendo en: http://127.0.0.1:5000
 
----
+# Documentación de endpoints (Swagger)
 
-## Entregables
+Una vez que el servidor esté en ejecución (flask run --reload), puedes acceder a la documentación interactiva de la API (generada con Swagger) desde tu navegador.
 
-1. **Repositorio de GitHub** con:
-   - Código fuente completo
-   - `requirements.txt` actualizado
-   - `README.md` con:
-     - Instrucciones de instalación
-     - Cómo ejecutar el proyecto
-     - Documentación de endpoints (puede ser informal)
-     - Credenciales de prueba para cada rol
+URL de la Documentación: http://127.0.0.1:5000/api/docs/swagger
 
-2. **Archivo de prueba** (Postman Collection o archivo `.http`):
-   - Ejemplos de requests para cada endpoint
-   - Casos de éxito y error
+# Probar la API
 
-3. **Base de datos**:
-   - Migraciones o script SQL para crear las tablas
-   - Datos de prueba (al menos 1 usuario de cada rol)
+La API está deployada 24/7 en este servidor, puede acceder para probar los endpoints aprovechando los datos de la db interna.
 
----
+```
+http://18.223.136.198:5000/
+```
 
-## Consideraciones
+Si se conecta a este servidor, los datos de prueba para cada tipo de usuario son:
 
-- **Máximo por grupo:** 3 personas
-- **Entrega individual:** Cada integrante debe subir el repositorio en Classroom
-- **Base de datos:** MySQL (puede ser local o remota)
-- **Fecha de entrega:** [DEFINIR FECHA]
-- **Consultas:** Pueden hacerse durante las clases o por el canal de Discord/Slack
+admin:
 
----
+    "username": 'admin'
+    "password": 'admin'
 
-## Plus Opcionales (Puntos Extra)
+moderator:
 
-- [ ] Implementar refresh tokens
-- [ ] Paginación en listados de posts
-- [ ] Filtros y búsqueda de posts por categoría/autor
-- [ ] Rate limiting (límite de requests por usuario)
-- [ ] Tests con cobertura >70%
-- [ ] Documentación con Swagger/OpenAPI
-- [ ] Implementar soft delete en lugar de borrado físico
-- [ ] Sistema de notificaciones (cuando alguien comenta tu post)
+    "username": 'moderator'
+    "password": 'moderator'
 
----
+user:
 
-## Recursos Útiles
+    "username": 'user'
+    "password": 'user'
 
-- [Flask-JWT-Extended Documentation](https://flask-jwt-extended.readthedocs.io/)
-- [Marshmallow Documentation](https://marshmallow.readthedocs.io/)
-- [Flask MethodView](https://flask.palletsprojects.com/en/2.3.x/views/)
-- [Passlib (hashing)](https://passlib.readthedocs.io/)
-
----
-
-## Ejemplo de Flujo de Trabajo
-
-1. Usuario se registra → recibe confirmación
-2. Usuario hace login → recibe JWT token
-3. Usuario crea un post → incluye token en header `Authorization: Bearer <token>`
-4. Otro usuario comenta el post → también autenticado
-5. Moderador elimina un comentario inapropiado → verificación de rol
-6. Admin cambia el rol de un usuario a moderador → solo admin puede hacerlo
-
----
-
-**¡Éxitos con la segunda etapa!** 🚀
-
-Recuerden que el objetivo es que apliquen los conceptos de:
-- Autenticación y autorización
-- Arquitectura de software
-- Seguridad en APIs
-- Buenas prácticas de desarrollo
