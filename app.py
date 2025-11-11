@@ -1,9 +1,12 @@
+import os
 from flask import Flask, render_template, jsonify
 
 from flask_smorest import Api
+from flask_cors import CORS
 
 from marshmallow import ValidationError
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+from werkzeug.exceptions import HTTPException
 
 from utils.exception_utils import *
 
@@ -19,6 +22,16 @@ from views.category_routes import blp as CategoryBlueprint
 from views.stats_routes import blp as StatsBlueprint
 
 app = Flask(__name__)
+
+# --- Inicialización de CORS ---
+# Para poder hacer las peticiones desde react en local
+CORS(app)
+# -----------------------------
+
+# --- Configuración del Modo Debug (Seguridad) ---
+app.config['DEBUG_MODE'] = os.getenv('DEBUG_MODE', 'False').lower() in ('true', '1', 't')
+print(f"DEBUG_MODE IS ACTIVE: {app.config['DEBUG_MODE']}")
+# -----------------------------------------------
 
 app.secret_key = "cualquiercosa"
 app.config['SQLALCHEMY_DATABASE_URI'] = (
@@ -107,14 +120,24 @@ def handle_conflict_error(err):
 
 @app.errorhandler(IntegrityError)
 def handle_integrity_error(err):
-    return jsonify({"error":str(err)}), 400
+    if app.config['DEBUG_MODE']:
+        error_message = str(err)
+    else:
+        error_message = "Data constraint violation. Ensure that the entered data is valid."
+        
+    return jsonify({"error":error_message}), 400
 
 @app.errorhandler(SQLAlchemyError)
 def handle_database_error(err):
-    # IMPORTANTE: Antes de entregar, armar un modo DEBUG y modificar esto para que solo
-    # devuelva el error cuando este activado, de otro modo devolver un string predefinido
-    # para evitar que la API devuelva informacion sensible
-    return jsonify({"error":str(err)}), 500
+ 
+    if app.config['DEBUG_MODE']:
+
+        error_message = str(err)
+    else:
+
+        error_message = "An unexpected database error has occurred."
+
+    return jsonify({"error":error_message}), 500
 
 # -- Manejador general para todos los errores --
 # (Al estar al final de los manejadores, solo va a usarse cuando
@@ -122,14 +145,20 @@ def handle_database_error(err):
 
 @app.errorhandler(Exception)
 def handle_general_exception(err):
-    # IMPORTANTE: Antes de entregar, armar un modo DEBUG y modificar esto para que solo
-    # devuelva el error cuando este activado, de otro modo devolver un string predefinido
-    # para evitar que la API devuelva informacion sensible
-    from werkzeug.exceptions import HTTPException
-
+     
     if isinstance(err, HTTPException):
         return jsonify({"error": err.description, "code": err.code}), err.code
-    return jsonify({"error":str(err)}), 500
+
+
+    if app.config['DEBUG_MODE']:
+
+        error_message = str(err)
+    else:
+
+        error_message = "An unexpected internal server error has occurred."
+
+    return jsonify({"error":error_message}), 500
+
 
 # --- API ROUTES ---
 
