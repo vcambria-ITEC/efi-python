@@ -1,8 +1,5 @@
-# Aqui van clases de excepciones para mantener el codigo comprensible
-# Antes estabamos usando ValueError para todo
-
-# Estas clases se usan en los manejadores globales de la app donde
-# se les asigna el codigo correspondiente.
+#Exception classes defined here
+# These classes are used in global handlers of the app, where they have a corresponding logic assigned.
 
 class AuthError(Exception):
     pass
