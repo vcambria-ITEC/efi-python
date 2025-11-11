@@ -1,266 +1,186 @@
-import requests
+import os
+import warnings
+from flask import Flask, render_template, jsonify
 
+from flask_smorest import Api
+from flask_cors import CORS
 
-from flask import Flask,flash, render_template, request, redirect, url_for
+from marshmallow import ValidationError
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+from werkzeug.exceptions import HTTPException
+
+from utils.exception_utils import *
+
 from flask_migrate import Migrate
-from flask_sqlalchemy import SQLAlchemy
+from flask_jwt_extended import JWTManager
+from models import db
 
-# from models import Category
-
-# Imports para el sistema de login
-from flask_login import (
-    LoginManager,
-    login_user,
-    login_required,
-    logout_user,
-    current_user,
-)
-from werkzeug.security import (
-    check_password_hash,
-    generate_password_hash
-    )
-
-
+from views.auth_routes import blp as AuthBlueprint
+from views.user_routes import blp as UserBlueprint
+from views.post_routes import blp as PostBlueprint
+from views.comment_routes import blp as CommentBlueprint
+from views.category_routes import blp as CategoryBlueprint
+from views.stats_routes import blp as StatsBlueprint
 
 app = Flask(__name__)
 
-app.secret_key = "cualquiercosa"
-app.config['SQLALCHEMY_DATABASE_URI'] = (
-    "mysql+pymysql://root:@localhost/db_miniblog"
-)
+# --- Inicialización de CORS ---
+# Para poder hacer las peticiones desde react en local
+CORS(app)
+# -----------------------------
 
-db = SQLAlchemy(app)
+# --- Configuración del Modo Debug (Seguridad) ---
+app.config['DEBUG_MODE'] = os.getenv('DEBUG_MODE', 'False').lower() in ('true', '1', 't')
+app.debug = app.config['DEBUG_MODE'] # Activa el modo debug de Flask
+if app.config['DEBUG_MODE']:
+    warnings.warn(
+        "DEBUG_MODE IS ACTIVE: Flask will show detailed errors and full stack traces.",
+        UserWarning
+        )
+# -----------------------------------------------
+
+app.secret_key = "cualquiercosa"
+
+# --- Conexión a la Base de Datos SQL ---
+DB_USER = os.getenv("DB_USER","root")
+DB_PASSWORD = os.getenv("DB_PASSWORD","")
+DB_SERVER = os.getenv("DB_SERVER","localhost")
+DB_NAME = os.getenv("DB_NAME","db_miniblog")
+
+DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_SERVER}/{DB_NAME}"
+
+app.config['SQLALCHEMY_DATABASE_URI'] = (DATABASE_URL)
+
+app.config['JWT_SECRET_KEY'] = 'cualquier-cosa'
+
+app.config["API_TITLE"] = "MiniBlog API"
+app.config["API_VERSION"] = "v1"
+app.config["OPENAPI_VERSION"] = "3.0.3"
+app.config["OPENAPI_URL_PREFIX"] = "/api/docs"
+app.config["OPENAPI_SWAGGER_UI_PATH"] = "/swagger"
+app.config["OPENAPI_SWAGGER_UI_URL"] = "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
+
+app.config["OPENAPI_COMPONENTS"] = {
+    "securitySchemes": {
+        "BearerAuth": {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT"
+        }
+    }
+}
+
+app.config["OPENAPI_JWT_SECURITY_NAME"] = "BearerAuth"
+
+api = Api(app)
+
+api.spec.components.security_scheme(
+    "BearerAuth", {"type": "http", "scheme": "bearer", "bearerFormat": "JWT"}
+)
+api.spec.options["security"] = [{"BearerAuth": []}]
+
+jwt = JWTManager(app)
+
+db.init_app(app)
 migrate = Migrate(app, db)
 
+# Error codes
+# 400 - Invalid Request
+# 401 - Unauthorized
+# 403 - Forbidden
+# 404 - Not Found
+# 409 - Conflict
 
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'login'
+# -- Custom handlers --
 
-from models import User, Post, Comment, Category
+@app.errorhandler(ValidationError)
+def handle_validation_error(err):
+    return jsonify({"error":"Invalid Request", "details":err.messages}), 400
 
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
+@app.errorhandler(ForbiddenError)
+def handle_permission_error(err):
+    return jsonify({"error":str(err)}), 403
 
-from models import User, Post, Comment
+@app.errorhandler(NotFoundError)
+def handle_not_found_error(err):
+    return jsonify({"error":str(err)}), 404
 
-@app.route('/')
-def index():
-    return render_template(
-        'index.html'
-    )
+@app.errorhandler(AuthError)
+def handle_auth_error(err):
+    return jsonify({"error":str(err)}), 401
 
-# SISTEMA DE LOGIN
+@app.errorhandler(InactiveUserError)
+def handle_inactive_user_error(err):
+    return jsonify({"error":str(err)}), 403
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if current_user.is_authenticated:
-        return redirect(url_for('index'))
-    
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password'] # Pass que llega desde el formulario
+@app.errorhandler(RegisterError)
+def handle_register_error(err):
+    return jsonify({"error":str(err)}), 400
 
-        user = User.query.filter_by(username=username).first()
-        if user and check_password_hash(pwhash=user.password_hash, password=password):
-            login_user(user)
-            return redirect(url_for('index'))
+@app.errorhandler(UpdateError)
+def handle_updates_error(err):
+    return jsonify({"error":str(err)}), 400
 
-    return render_template(
-        'auth/login.html'
-    )
+@app.errorhandler(DeleteError)
+def handle_delete_error(err):
+    return jsonify({"error":str(err)}), 400
 
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if current_user.is_authenticated:
-        return redirect(url_for('index'))
-    
-    if request.method == 'POST':
-        username = request.form["username"]
-        email = request.form["email"]
-        password = request.form["password"]
+@app.errorhandler(ConflictError)
+def handle_conflict_error(err):
+    return jsonify({"error":str(err)}), 409
 
-        user = User.query.filter_by(username=username).first()
-        if user:
-            flash('Username exist', 'error')
-            return redirect(url_for('register'))
-        
-        # Hasheo de contraseña
-        password_hash = generate_password_hash(
-            password=password,
-            method='pbkdf2'
-        )
-        # Creacion del nuevo usuario
-        new_user = User(
-            username=username,
-            email=email,
-            password_hash=password_hash
-        )
-        db.session.add(new_user)
-        db.session.commit()
+# -- Error handlers using SQLAlchemy exceptions. --
 
-        flash('Username created succefully', 'success')
-        return redirect(url_for('login'))
-    return render_template("auth/register.html")
-
-
-@app.route('/logout')
-def logout():
-    logout_user()
-    return redirect(url_for('index'))
-
-# CREAR LAS CATEGORIAS EN LA DB
-
-def cargar_categorias_iniciales():
-    categorias = ['Noticias', 'Arte', 'Entretenimiento', 'Videojuegos', 'Historia',
-                  'Política', 'Opinión', 'Recomendaciones', 'Reseña', 'Literatura',
-                  'Filosofía', 'Ciencia', 'Salud y bienestar', 'Cultura', 'Educación']
-    
-    for nombre in categorias:
-        if not Category.query.filter_by(name=nombre).first():
-            db.session.add(Category(name=nombre))
-    db.session.commit()
-
-with app.app_context(): # No es lo ideal porque se ejecuta en cada recarga, pero funciona
-    if Category.query.count() == 0: # Evita que se ejecute de nuevo la carga completa
-        cargar_categorias_iniciales()
-
-# MANEJO DE LAS PAGINAS
-
-@app.context_processor
-def get_categories():
-    categories = Category.query.all()
-
-    # El context_processor retorna siempre un diccionario, por lo que convertimos los objetos
-    # Category del modelo a un diccionario para pasarlo al select y luego al form
-
-    categories_dict = [{'id': c.id, 'name':c.name} for c in categories]
-    return dict(categories=categories_dict)
-
-@app.route('/create_post', methods=['GET', 'POST'])
-
-
-def posts():
-    if request.method == 'POST':
-        title = request.form['title']
-        content = request.form['content']
-        categories_ids = request.form.getlist('categories') # Obtiene una lista de las ids
-
-        if not title or len(title.strip()) == 0:
-            flash('El titulo no puede estar vacío.', 'error')
-            return redirect(url_for('posts'))
-
-        if not content or len(content.strip()) == 0:
-            flash('El post no puede estar vacío.', 'error')
-            return redirect(url_for('posts'))
-
-        if len(categories_ids) == 0:
-            flash('Debe elegir al menos una categoría para el post.', 'error')
-            return redirect(url_for('posts'))
-        
-        if len(categories_ids) > 3:
-            flash('Solo puede elegir un máximo de 3 categorías')
-            return redirect(url_for('posts'))
-        
-        categories = Category.query.filter(Category.id.in_(categories_ids)).all()
-        for cat in categories:
-            print(cat.name)
-
-        new_post = Post(
-            title=title,
-            content=content,
-            user_id=current_user.id
-        )
-
-        # Convierte las id recibidas por el formulario en objetos Category y los
-        # agrega al post (SQLAlchemy carga los datos en la tabla intermedia)
-        categories = Category.query.filter(Category.id.in_(categories_ids)).all()
-        new_post.categories = categories
-
-        db.session.add(new_post)
-        db.session.commit()
-
-        return redirect(url_for('posts'))
-
-    #verificar que exista algun post
-    existingPosts = Post.query.order_by(Post.date.desc()).all()
-    return render_template(
-        'create_post.html',
-        existingPosts=existingPosts
-    )
-
-#borrado logico de post
-@app.route('/delete_post/<int:post_id>')
-@login_required
-def delete_post(post_id):
-    post = Post.query.filter_by(id=post_id, is_active=1).first_or_404(description="Posteo no encontrado o ya está desactivado")
-
-    if post.user_id == current_user.id:
-        post.is_active = 0
-        db.session.commit()
-        flash("Post eliminado correctamente", "success")
+@app.errorhandler(IntegrityError)
+def handle_integrity_error(err):
+    if app.config['DEBUG_MODE']:
+        error_message = str(err)
     else:
-        flash("No puedes eliminar este Post", "error")
+        error_message = "Data constraint violation. Ensure that the entered data is valid."
+        
+    return jsonify({"error":error_message}), 400
+
+@app.errorhandler(SQLAlchemyError)
+def handle_database_error(err):
+ 
+    if app.config['DEBUG_MODE']:
+
+        error_message = str(err)
+    else:
+
+        error_message = "An unexpected database error has occurred."
+
+    return jsonify({"error":error_message}), 500
+
+# -- Manejador general para todos los errores --
+# (Al estar al final de los manejadores, solo va a usarse cuando
+# la app no pueda captar el error con ninguno de los manejadores anteriores.)
+
+@app.errorhandler(Exception)
+def handle_general_exception(err):
+     
+    if isinstance(err, HTTPException):
+        return jsonify({"error": err.description, "code": err.code}), err.code
 
 
-    return redirect(url_for('posts'))
+    if app.config['DEBUG_MODE']:
+
+        error_message = str(err)
+    else:
+
+        error_message = "An unexpected internal server error has occurred."
+
+    return jsonify({"error":error_message}), 500
 
 
-@app.route('/edit_post/<int:post_id>' , methods=['GET', 'POST'])
-@login_required
-def edit_post(post_id): 
-    post = Post.query.get_or_404(post_id)
+# --- API ROUTES ---
 
-    if request.method == 'POST':
-        new_title = request.form['title']
-        new_content = request.form['content']
-        new_categories_ids = request.form.getlist('categories')
-        new_categories = Category.query.filter(Category.id.in_(new_categories_ids)).all()
-
-        # Validacion para que no quede un post sin categorizar
-        if new_title == post.title and new_content == post.content and post.categories == new_categories:
-            flash('No se realizaron cambios en el post', 'info')
-        else:
-
-            if len(new_categories_ids) == 0:
-                flash('Debe elegir al menos una categoría para el post.', 'error')
-                return redirect(url_for('edit_post',post_id=post_id))
-
-            post.title = new_title
-            post.content = new_content
-            post.categories = new_categories
-            db.session.commit()
-            flash('Post editado correctamente', 'success')
-            
-        return redirect(url_for('posts'))
-
-    return render_template('edit_post.html', post=post)
-
-@app.route('/post/<int:post_id>/comment', methods = ['POST'])
-@login_required
-def create_comment(post_id):
-
-        if request.method == 'POST':
-            post = Post.query.get_or_404(post_id)
-            content = request.form['content']
-            if not content or len(content.strip()) == 0:
-                flash('El comentario no puede estar vacío.', 'error')
-                return redirect(url_for('posts', _anchor=f'post-{post_id}'))
-            
-            comment = Comment(
-                content=content,
-                user_id=current_user.id,
-                post_id=post_id,
-                is_active=True
-            )
-
-        db.session.add(comment)
-        db.session.commit()
-
-        flash('Comentario agregado exitosamente.', 'success')
-
-        return redirect(url_for('posts', _anchor=f'post-{post_id}'))
+api.register_blueprint(AuthBlueprint)
+api.register_blueprint(UserBlueprint)
+api.register_blueprint(PostBlueprint)
+api.register_blueprint(CommentBlueprint)
+api.register_blueprint(CategoryBlueprint)
+api.register_blueprint(StatsBlueprint)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
