@@ -45,9 +45,10 @@ app.secret_key = "cualquiercosa"
 DB_USER = os.getenv("DB_USER","root")
 DB_PASSWORD = os.getenv("DB_PASSWORD","")
 DB_SERVER = os.getenv("DB_SERVER","localhost")
+DB_PORT = os.getenv("DB_PORT","3306")
 DB_NAME = os.getenv("DB_NAME","db_miniblog")
 
-DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_SERVER}/{DB_NAME}"
+DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_SERVER}:{DB_PORT}/{DB_NAME}"
 
 app.config['SQLALCHEMY_DATABASE_URI'] = (DATABASE_URL)
 
