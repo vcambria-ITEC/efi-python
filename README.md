@@ -79,10 +79,11 @@ export DB_PORT="3306"
 
 
 #### La app se conectará a la base de datos de la siguiente manera
-
+```
 app.config['SQLALCHEMY_DATABASE_URI'] = (
     "mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_SERVER}:{DB_PORT}/{DB_NAME}"
 )
+```
 
 ### 5. Aplicar las Migraciones
 Ejecuta los siguientes comandos en orden para crear toda la estructura de tablas en tu base de datos:
