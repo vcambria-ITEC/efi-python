@@ -1,0 +1,704 @@
+{
+	"info": {
+		"_postman_id": "a2d6bb7f-7385-4c5f-92cf-abfd2e72b6fb",
+		"name": "EFI-Python",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "48124241",
+		"_collection_link": "https://v-cambria-3811252.postman.co/workspace/Default-workspace~ea920f21-e898-4dde-a29f-0ec6850dd50d/collection/48124241-a2d6bb7f-7385-4c5f-92cf-abfd2e72b6fb?action=share&source=collection_link&creator=48124241"
+	},
+	"item": [
+		{
+			"name": "MetodosPost",
+			"item": [
+				{
+					"name": "CrearPost",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc2MjI5NzM5NCwianRpIjoiYTZlNDAxYmYtZGZkNS00OThkLWEzODMtZTBjYTg0NDI3OGI4IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NjIyOTczOTQsImNzcmYiOiI0MjU5OGNiNS00ZGNiLTRlN2ItODk0YS0xZGQwYmNjOGExZWYiLCJleHAiOjE3NjIzODM3OTQsImVtYWlsIjoidmFsZUBtYWlsLmNvbSIsInJvbGUiOiJhZG1pbiIsInVzZXJfaWQiOjF9.6bMLC7qB4PGtaSRIstIEfCePY1oAoOAJmegMOdce7L8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"title\": \"pruebadepost66\",\r\n    \"content\": \"Pruebita321\",\r\n    \"category_ids\": [1]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/api/posts",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"posts"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetPosts",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc2MjI5NzM5NCwianRpIjoiYTZlNDAxYmYtZGZkNS00OThkLWEzODMtZTBjYTg0NDI3OGI4IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NjIyOTczOTQsImNzcmYiOiI0MjU5OGNiNS00ZGNiLTRlN2ItODk0YS0xZGQwYmNjOGExZWYiLCJleHAiOjE3NjIzODM3OTQsImVtYWlsIjoidmFsZUBtYWlsLmNvbSIsInJvbGUiOiJhZG1pbiIsInVzZXJfaWQiOjF9.6bMLC7qB4PGtaSRIstIEfCePY1oAoOAJmegMOdce7L8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/api/posts",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"posts"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PutPosts",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc2MjI5NzM5NCwianRpIjoiYTZlNDAxYmYtZGZkNS00OThkLWEzODMtZTBjYTg0NDI3OGI4IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NjIyOTczOTQsImNzcmYiOiI0MjU5OGNiNS00ZGNiLTRlN2ItODk0YS0xZGQwYmNjOGExZWYiLCJleHAiOjE3NjIzODM3OTQsImVtYWlsIjoidmFsZUBtYWlsLmNvbSIsInJvbGUiOiJhZG1pbiIsInVzZXJfaWQiOjF9.6bMLC7qB4PGtaSRIstIEfCePY1oAoOAJmegMOdce7L8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"title\": \"probandoPut\",\r\n    \"content\": \"putoelqleeeeee\",\r\n    \"category_ids\": [1]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/api/posts/1",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"posts",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PatchPost",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc2MjI5NzM5NCwianRpIjoiYTZlNDAxYmYtZGZkNS00OThkLWEzODMtZTBjYTg0NDI3OGI4IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NjIyOTczOTQsImNzcmYiOiI0MjU5OGNiNS00ZGNiLTRlN2ItODk0YS0xZGQwYmNjOGExZWYiLCJleHAiOjE3NjIzODM3OTQsImVtYWlsIjoidmFsZUBtYWlsLmNvbSIsInJvbGUiOiJhZG1pbiIsInVzZXJfaWQiOjF9.6bMLC7qB4PGtaSRIstIEfCePY1oAoOAJmegMOdce7L8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"content\": \"pruebadepatch\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/api/posts/1",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"posts",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetPostById",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc2MjI5NzM5NCwianRpIjoiYTZlNDAxYmYtZGZkNS00OThkLWEzODMtZTBjYTg0NDI3OGI4IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NjIyOTczOTQsImNzcmYiOiI0MjU5OGNiNS00ZGNiLTRlN2ItODk0YS0xZGQwYmNjOGExZWYiLCJleHAiOjE3NjIzODM3OTQsImVtYWlsIjoidmFsZUBtYWlsLmNvbSIsInJvbGUiOiJhZG1pbiIsInVzZXJfaWQiOjF9.6bMLC7qB4PGtaSRIstIEfCePY1oAoOAJmegMOdce7L8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/api/posts/1",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"posts",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DeletePost",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc2MjI5NzM5NCwianRpIjoiYTZlNDAxYmYtZGZkNS00OThkLWEzODMtZTBjYTg0NDI3OGI4IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NjIyOTczOTQsImNzcmYiOiI0MjU5OGNiNS00ZGNiLTRlN2ItODk0YS0xZGQwYmNjOGExZWYiLCJleHAiOjE3NjIzODM3OTQsImVtYWlsIjoidmFsZUBtYWlsLmNvbSIsInJvbGUiOiJhZG1pbiIsInVzZXJfaWQiOjF9.6bMLC7qB4PGtaSRIstIEfCePY1oAoOAJmegMOdce7L8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/api/posts/1",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"posts",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"vale\",\r\n    \"password\": \"vale123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/api/login",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"tomasito\",\r\n    \"email\": \"tomi22@mail.com\",\r\n    \"password\": \"tomi22\",\r\n    \"role\": \"\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/api/register",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"register"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "MetodosComment",
+			"item": [
+				{
+					"name": "GetComments",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc2MjI5NzM5NCwianRpIjoiYTZlNDAxYmYtZGZkNS00OThkLWEzODMtZTBjYTg0NDI3OGI4IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NjIyOTczOTQsImNzcmYiOiI0MjU5OGNiNS00ZGNiLTRlN2ItODk0YS0xZGQwYmNjOGExZWYiLCJleHAiOjE3NjIzODM3OTQsImVtYWlsIjoidmFsZUBtYWlsLmNvbSIsInJvbGUiOiJhZG1pbiIsInVzZXJfaWQiOjF9.6bMLC7qB4PGtaSRIstIEfCePY1oAoOAJmegMOdce7L8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/api/posts/1/comments",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"posts",
+								"1",
+								"comments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PostComment",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc2MjI5NzM5NCwianRpIjoiYTZlNDAxYmYtZGZkNS00OThkLWEzODMtZTBjYTg0NDI3OGI4IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NjIyOTczOTQsImNzcmYiOiI0MjU5OGNiNS00ZGNiLTRlN2ItODk0YS0xZGQwYmNjOGExZWYiLCJleHAiOjE3NjIzODM3OTQsImVtYWlsIjoidmFsZUBtYWlsLmNvbSIsInJvbGUiOiJhZG1pbiIsInVzZXJfaWQiOjF9.6bMLC7qB4PGtaSRIstIEfCePY1oAoOAJmegMOdce7L8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"content\": \"pruebacomment\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/api/posts/1/comments",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"posts",
+								"1",
+								"comments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PatchComment",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc2MjI5NzM5NCwianRpIjoiYTZlNDAxYmYtZGZkNS00OThkLWEzODMtZTBjYTg0NDI3OGI4IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NjIyOTczOTQsImNzcmYiOiI0MjU5OGNiNS00ZGNiLTRlN2ItODk0YS0xZGQwYmNjOGExZWYiLCJleHAiOjE3NjIzODM3OTQsImVtYWlsIjoidmFsZUBtYWlsLmNvbSIsInJvbGUiOiJhZG1pbiIsInVzZXJfaWQiOjF9.6bMLC7qB4PGtaSRIstIEfCePY1oAoOAJmegMOdce7L8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"content\": \"tevolviacambiaretle\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/api/comments/1",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"comments",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DeleteComment",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc2MjI5NzM5NCwianRpIjoiYTZlNDAxYmYtZGZkNS00OThkLWEzODMtZTBjYTg0NDI3OGI4IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NjIyOTczOTQsImNzcmYiOiI0MjU5OGNiNS00ZGNiLTRlN2ItODk0YS0xZGQwYmNjOGExZWYiLCJleHAiOjE3NjIzODM3OTQsImVtYWlsIjoidmFsZUBtYWlsLmNvbSIsInJvbGUiOiJhZG1pbiIsInVzZXJfaWQiOjF9.6bMLC7qB4PGtaSRIstIEfCePY1oAoOAJmegMOdce7L8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/api/comments/1",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"comments",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "ApiStats",
+			"item": [
+				{
+					"name": "GetAPIStats",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc2MjI5NzM5NCwianRpIjoiYTZlNDAxYmYtZGZkNS00OThkLWEzODMtZTBjYTg0NDI3OGI4IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NjIyOTczOTQsImNzcmYiOiI0MjU5OGNiNS00ZGNiLTRlN2ItODk0YS0xZGQwYmNjOGExZWYiLCJleHAiOjE3NjIzODM3OTQsImVtYWlsIjoidmFsZUBtYWlsLmNvbSIsInJvbGUiOiJhZG1pbiIsInVzZXJfaWQiOjF9.6bMLC7qB4PGtaSRIstIEfCePY1oAoOAJmegMOdce7L8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/api/stats",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"stats"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "MetodosCategories",
+			"item": [
+				{
+					"name": "GetCategories",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc2MjI5NzM5NCwianRpIjoiYTZlNDAxYmYtZGZkNS00OThkLWEzODMtZTBjYTg0NDI3OGI4IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NjIyOTczOTQsImNzcmYiOiI0MjU5OGNiNS00ZGNiLTRlN2ItODk0YS0xZGQwYmNjOGExZWYiLCJleHAiOjE3NjIzODM3OTQsImVtYWlsIjoidmFsZUBtYWlsLmNvbSIsInJvbGUiOiJhZG1pbiIsInVzZXJfaWQiOjF9.6bMLC7qB4PGtaSRIstIEfCePY1oAoOAJmegMOdce7L8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/api/categories",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"categories"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PostCategory",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc2MjMwNjg4OSwianRpIjoiZjU3NWQ5ODItZGQ2Zi00ZDVkLTk4ZDgtM2U0YTViYjk2YmY3IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NjIzMDY4ODksImNzcmYiOiI0NDBhMWIwMC1hNDc4LTQxNjQtOTBlZC0zYTg0MTczOGM3ZDUiLCJleHAiOjE3NjIzOTMyODksImVtYWlsIjoidmFsZUBtYWlsLmNvbSIsInJvbGUiOiJhZG1pbiIsInVzZXJfaWQiOjF9.9GA4IWhD-Jag-M7cVgE95KtLSDztHI5-nTl4S-3yx38",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"CategoriaPrueba\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/api/categories",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"categories"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetCategoryById",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc2MjMwNjg4OSwianRpIjoiZjU3NWQ5ODItZGQ2Zi00ZDVkLTk4ZDgtM2U0YTViYjk2YmY3IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NjIzMDY4ODksImNzcmYiOiI0NDBhMWIwMC1hNDc4LTQxNjQtOTBlZC0zYTg0MTczOGM3ZDUiLCJleHAiOjE3NjIzOTMyODksImVtYWlsIjoidmFsZUBtYWlsLmNvbSIsInJvbGUiOiJhZG1pbiIsInVzZXJfaWQiOjF9.9GA4IWhD-Jag-M7cVgE95KtLSDztHI5-nTl4S-3yx38",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/api/categories/1",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"categories",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PutCategory",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc2MjMwNjg4OSwianRpIjoiZjU3NWQ5ODItZGQ2Zi00ZDVkLTk4ZDgtM2U0YTViYjk2YmY3IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NjIzMDY4ODksImNzcmYiOiI0NDBhMWIwMC1hNDc4LTQxNjQtOTBlZC0zYTg0MTczOGM3ZDUiLCJleHAiOjE3NjIzOTMyODksImVtYWlsIjoidmFsZUBtYWlsLmNvbSIsInJvbGUiOiJhZG1pbiIsInVzZXJfaWQiOjF9.9GA4IWhD-Jag-M7cVgE95KtLSDztHI5-nTl4S-3yx38",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"cambie-elnombre\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:5000/api/categories/1",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"categories",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DeleteCategory",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc2MjMwNjg4OSwianRpIjoiZjU3NWQ5ODItZGQ2Zi00ZDVkLTk4ZDgtM2U0YTViYjk2YmY3IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjEiLCJuYmYiOjE3NjIzMDY4ODksImNzcmYiOiI0NDBhMWIwMC1hNDc4LTQxNjQtOTBlZC0zYTg0MTczOGM3ZDUiLCJleHAiOjE3NjIzOTMyODksImVtYWlsIjoidmFsZUBtYWlsLmNvbSIsInJvbGUiOiJhZG1pbiIsInVzZXJfaWQiOjF9.9GA4IWhD-Jag-M7cVgE95KtLSDztHI5-nTl4S-3yx38",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/api/categories/1",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"categories",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
