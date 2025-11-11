@@ -1,4 +1,5 @@
 import os
+import warnings
 from flask import Flask, render_template, jsonify
 
 from flask_smorest import Api
@@ -30,13 +31,25 @@ CORS(app)
 
 # --- Configuración del Modo Debug (Seguridad) ---
 app.config['DEBUG_MODE'] = os.getenv('DEBUG_MODE', 'False').lower() in ('true', '1', 't')
-print(f"DEBUG_MODE IS ACTIVE: {app.config['DEBUG_MODE']}")
+app.debug = app.config['DEBUG_MODE'] # Activa el modo debug de Flask
+if app.config['DEBUG_MODE']:
+    warnings.warn(
+        "DEBUG_MODE IS ACTIVE: Flask will show detailed errors and full stack traces.",
+        UserWarning
+        )
 # -----------------------------------------------
 
 app.secret_key = "cualquiercosa"
-app.config['SQLALCHEMY_DATABASE_URI'] = (
-    "mysql+pymysql://root:@localhost/test"
-)
+
+# --- Conexión a la Base de Datos SQL ---
+DB_USER = os.getenv("DB_USER","root")
+DB_PASSWORD = os.getenv("DB_PASSWORD","")
+DB_SERVER = os.getenv("DB_SERVER","localhost")
+DB_NAME = os.getenv("DB_NAME","db_miniblog")
+
+DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_SERVER}/{DB_NAME}"
+
+app.config['SQLALCHEMY_DATABASE_URI'] = (DATABASE_URL)
 
 app.config['JWT_SECRET_KEY'] = 'cualquier-cosa'
 
@@ -170,4 +183,4 @@ api.register_blueprint(CategoryBlueprint)
 api.register_blueprint(StatsBlueprint)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
