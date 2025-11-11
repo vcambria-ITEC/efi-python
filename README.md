@@ -63,20 +63,25 @@ pip install -r requirements.txt
 ```
 ### 4. Conectar la Base de Datos
 
-1. Abre el archivo app.py en tu editor de código.
+Para conectarte a la base de datos, necesitarás las siguientes variables de ambiente
 
-Localiza la línea app.config:
+#### Crear variables temporales (para la sesión actual de tu terminal)
 
-['SQLALCHEMY_DATABASE_URI'].
+```bash
+export DB_NAME="db_miniblog"
+export DB_USER="root"
+export DB_PASSWORD=""
+export DB_SERVER="localhost"
+export DB_PORT="3306"
+```
 
-2. Actualízala para que coincida con tu usuario, contraseña (si tienes) y el nombre de la base de datos que creaste en el paso 2.
+###### NOTA: las variables que se muestran son las que la API utiliza por defecto al inicializarse, si son las mismas que vas a utilizar en la base de datos no es necesario utilizar este código en tu terminal.
 
 
-#### Ejemplo de cambio en app.py
+#### La app se conectará a la base de datos de la siguiente manera
 
 app.config['SQLALCHEMY_DATABASE_URI'] = (
-    # Cambia 'db_miniblog' por el nombre de tu BD
-    "mysql+pymysql://root:@localhost/db_miniblog"
+    "mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_SERVER}:{DB_PORT}/{DB_NAME}"
 )
 
 ### 5. Aplicar las Migraciones
