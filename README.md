@@ -118,8 +118,15 @@ Una vez que el servidor esté en ejecución (flask run --reload), puedes acceder
 
 URL de la Documentación: http://127.0.0.1:5000/api/docs/swagger
 
+# Probar la API
 
-si usa la base de datos remota, los datos de prueba para cada tipo de usuario son:
+La API está deployada 24/7 en este servidor, puede acceder para probar los endpoints aprovechando los datos de la db interna.
+
+```
+http://18.223.136.198:5000/
+```
+
+Si se conecta a este servidor, los datos de prueba para cada tipo de usuario son:
 
 admin:
 
@@ -135,7 +142,4 @@ user:
 
     "username": 'user'
     "password": 'user'
-
-
-
 
