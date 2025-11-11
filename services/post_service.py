@@ -19,7 +19,12 @@ class PostService:
         self.repo = PostRepository()
 
     def get_all_posts(self):
-        return self.repo.get_all()
+        posts = self.repo.get_all()
+
+        if not posts:
+            raise NotFoundError('No posts available yet')
+
+        return posts
 
     def get_post_by_id(self, post_id):
         target_post = self.repo.get_by_id(post_id)
