@@ -33,6 +33,13 @@ CORS(app,
      expose_headers=["Authorization"])
 # -----------------------------
 
+# ---------------- Preflight OPTIONS ----------------
+@app.before_request
+def handle_options():
+    if request.method == "OPTIONS":
+        return '', 200  # deja pasar el preflight
+# ----------------------------------------------------
+
 # --- Configuración del Modo Debug (Seguridad) ---
 app.config['DEBUG_MODE'] = os.getenv('DEBUG_MODE', 'False').lower() in ('true', '1', 't')
 app.debug = app.config['DEBUG_MODE'] # Activa el modo debug de Flask
