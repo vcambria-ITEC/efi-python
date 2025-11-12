@@ -26,7 +26,11 @@ app = Flask(__name__)
 
 # --- Inicialización de CORS ---
 # Para poder hacer las peticiones desde react en local
-CORS(app)
+CORS(app,
+     origins="*",  
+     supports_credentials=True,
+     allow_headers=["Content-Type", "Authorization"],
+     expose_headers=["Authorization"])
 # -----------------------------
 
 # --- Configuración del Modo Debug (Seguridad) ---
