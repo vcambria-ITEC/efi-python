@@ -59,7 +59,7 @@ class CommentService:
         if not comment:
             raise NotFoundError(COMMENT_NOT_FOUND_ERROR)
         
-        if not is_owner(current_user_id, comment.user_id) or get_role() != 'moderator':
+        if not is_owner(current_user_id, comment.user_id) and get_role() != 'moderator':
             raise ForbiddenError(COMMENT_OWNERSHIP_ERROR)
 
         comment.is_visible = False
